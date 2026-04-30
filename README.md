@@ -70,9 +70,10 @@ The wand loader consists of a few things:
         this forces the spell actions to SYNC directly to the in game "gun.lua"(which is what actually handles the wand casts),
         you can still cast spells normally, BUT the game will not spawn wand particles.
 
-**NOTE:** When using this method, refreshing the wand will make the game "FORCE" sync the dummy spell "add mana" in "gun.lua".
+**NOTE:** When using this method, refreshing the wand will make the game load the dummy spell "add mana" as `card_action`
+in the wand entity, and "FORCE" sync + load your ACTUAL actions DIRECTLY in "gun.lua".
 So for example, any means of "opening the inventory", "swapping to another wand", "restarting the game" will refresh everything 
-and you will lose the deck that was force loaded :(
+and you will lose the deck that was force loaded, and you will only get "add mana" :(
 
 - "Load on held wand": NOT RECOMMENDED FOR BIG WANDS, this is what you would usually expect, loading all spell actions
         as child entities in the wand.
