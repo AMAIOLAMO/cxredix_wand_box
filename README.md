@@ -47,11 +47,11 @@ The wand loader consists of a few things:
     
     we now have two sections, separated by a semicolon ";". first section are the spell ids / spell action aliases
 
-    the second section denotes any spell action aliases, so here we aliased "SPELL_ID3" as 1, "SPELL_ID4" as 4,
+    the second section denotes any spell action aliases, so here we aliased "SPELL_ID3" as 1, "SPELL_ID4" as 2,
     and "SPELL_ID5" as 3.
 
 
-    for example
+    for example:
     MANA_REDUCE, MANA_REDUCE, HEAVY_SHOT, HEAVY_SHOT, HEAVY_SHOT, HEAVY_SHOT, HEAVY_SHOT, HEAVY_BULLET
 
     the above can be shortened into:
@@ -62,6 +62,8 @@ The wand loader consists of a few things:
 
     Additional note: spaces and newlines are not necessary / mandatory, you can omit them entirely :)
     ```
+
+**NOTE:** The format to load wands are subject to change :), BUT the first basic format should be stable :D
 
 2. Wand load actions (Buttons that show up ONLY when you have text placed in the action string box)
 - "Direct sync to wand": VERY USEFUL FOR REALLY BIG WANDS(tested with 800k+ spell actions),
