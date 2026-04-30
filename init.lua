@@ -14,9 +14,6 @@ dofile_once(root_path .. "wand_utils.lua")
 
 ModLuaFileAppend("data/scripts/gun/gun.lua", root_path .. "gun_deck_handler.lua")
 
--- clear any previous un-synced actions
-cx_deck_sync.consume_sync()
-cx_deck_sync.clear_sync_complete_flag()
 
 local player
 
@@ -34,6 +31,12 @@ end
 
 function lerpf(a, b, t)
     return a + (b - a) * t
+end
+
+function OnWorldInitialized()
+    -- clear any previous un-synced actions
+    cx_deck_sync.consume_sync()
+    cx_deck_sync.clear_sync_complete_flag()
 end
 
 -- use imgui when the function exists
@@ -266,6 +269,21 @@ if load_imgui ~= nil then
         else
             wand_loader_log_info("Player is not holding a wand, load fail")
         end
+    end
+else
+
+    local warn_notify_interval_frames = 60 * 4 -- every 4 seconds
+
+    local warn_frames = 0
+
+    function OnWorldPostUpdate()
+        if warn_frames <= 0 then
+            GamePrint("[Wand Box] Cannot find Noita Dear Imgui, It is either you didn't install it")
+            GamePrint("[Wand Box] Or that you didn't put Wand Box mod below Noita Dear Imgui in the mod list :3")
+            warn_frames = warn_notify_interval_frames
+        end
+
+        warn_frames = warn_frames - 1
     end
 end
 
