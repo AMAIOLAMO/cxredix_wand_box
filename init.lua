@@ -39,7 +39,7 @@ end
 -- use imgui when the function exists
 if load_imgui ~= nil then
     function wand_loader_log_info(msg)
-        GamePrint("[Wand box]" .. msg)
+        GamePrint("[Wand Loader]" .. msg)
     end
 
     local imgui = load_imgui({version="1.21.0", mod="CxRedixWandBox"})
@@ -211,7 +211,6 @@ if load_imgui ~= nil then
         if held_wand_id ~= nil then
             wand_loader_log_info("Trying to sync")
 
-            -- TODO: probably move this outside
             load_wand_timer:clear()
             load_wand_timer:begin_append()
 
@@ -249,7 +248,6 @@ if load_imgui ~= nil then
         if held_wand ~= nil then
             wand_loader_log_info("Loading held wand")
 
-            -- TODO: probably move this outside
             load_wand_timer:clear()
             load_wand_timer:begin_append()
 

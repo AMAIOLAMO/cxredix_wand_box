@@ -3,12 +3,12 @@
 dofile_once("mods/cxredix_wand_box/cx_action_parse_utils.lua")
 local cx_deck_sync = dofile_once("mods/cxredix_wand_box/cx_deck_sync.lua")
 
-local cx_pxa_old_add_card_to_deck = _add_card_to_deck
+local cx_wndbx_old_add_card_to_deck = _add_card_to_deck
 
 local action_id_lookup_cache = {
 }
 
-function cx_pxa_update_cache()
+function cx_wndbx_update_cache()
     action_id_lookup_cache = {}
 
     for idx, action in ipairs(actions) do
@@ -16,12 +16,12 @@ function cx_pxa_update_cache()
     end
 end
 
-cx_pxa_update_cache()
+cx_wndbx_update_cache()
 
 -- A very slight optimization of the original, at the cost of twice the amount of memory to store cache
-function cx_pxa_new_add_card_to_deck(action_id, inventoryitem_id, uses_remaining, is_identified)
+function cx_wndbx_new_add_card_to_deck(action_id, inventoryitem_id, uses_remaining, is_identified)
     if action_id_lookup_cache[action_id] == nil then
-        cx_pxa_update_cache()
+        cx_wndbx_update_cache()
     end
 
     local action = action_id_lookup_cache[action_id]
@@ -49,22 +49,22 @@ function _add_card_to_deck(action_id, inventoryitem_id, uses_remaining, is_ident
         local deck_action_ids = cx_deserialize_to_action_ids(raw_deck_str)
             
         for _, deck_action_id in ipairs(deck_action_ids) do
-            cx_pxa_old_add_card_to_deck(deck_action_id, inventoryitem_id, -1, is_identified)
+            cx_wndbx_old_add_card_to_deck(deck_action_id, inventoryitem_id, -1, is_identified)
             
             -- This is just a slightly optimized version using cache, only a 1.14 times improvement overall
-            -- cx_pxa_new_add_card_to_deck(deck_action_id, inventoryitem_id, -1, is_identified)
+            -- cx_wndbx_new_add_card_to_deck(deck_action_id, inventoryitem_id, -1, is_identified)
         end
 
         cx_deck_sync.mark_sync_complete_flag()
 
         GamePrint("Load finished!")
 
-        GlobalsSetValue("cx_pxa_sync_deck_actions", "")
-        GlobalsSetValue("cx_pxa_sync_complete_flag", "true")
+        GlobalsSetValue("cx_wndbx_sync_deck_actions", "")
+        GlobalsSetValue("cx_wndbx_sync_complete_flag", "true")
 
         return
     end
 
-    cx_pxa_old_add_card_to_deck(action_id, inventoryitem_id, uses_remaining, is_identified)
+    cx_wndbx_old_add_card_to_deck(action_id, inventoryitem_id, uses_remaining, is_identified)
 end
 

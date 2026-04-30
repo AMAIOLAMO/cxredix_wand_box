@@ -2,11 +2,11 @@
 
 For all your Noita wand shenanigans!
 
-### Prerequisites
+## Prerequisites
 1. Download [Noita Dear Imgui](https://github.com/dextercd/Noita-Dear-ImGui) here! this is required for the UI in wand box :)
 
 
-### Installation instructions
+## Installation instructions
 1. download the zip by clicking on the big blue "<> Code" button, and clicking on "Download ZIP" (if you are downloading from github)
 
 2. extract this into your noita mods' directory.
@@ -16,13 +16,15 @@ check this [tutorial from the Noita wiki](https://noita.wiki.gg/wiki/How_to_inst
 This is required since Noita Dear Imgui has to load first :)
 
 
-#### Wand Box Menu
+### Wand Box Menu
 The wand box menu should show up at the bottom center of your screen, it should have the text "CxRedix's Wand Box" on it.
 
 You can click on it and it should show up all the tools that are available! (There is only "Wand Loader" for now)
 
 
-#### Wand Loader
+### Wand Loader
+
+![Wand loader visual](vendor/wand_loader_ui_visual.png)
 
 The wand loader consists of a few things:
 
