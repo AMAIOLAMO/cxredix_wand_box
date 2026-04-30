@@ -27,7 +27,7 @@ You can click on it and it should show up all the tools that are available! (The
 The wand loader consists of a few things:
 
 1. Wand action string box (The big box in the center)
-    - The format for wand action string is as follows:
+- The format for wand action string is as follows:
     ```
     The most simplest format is:
     SPELL_ID1, SPELL_ID2, SPELL_ID3, SPELL_ID1
@@ -64,18 +64,18 @@ The wand loader consists of a few things:
     ```
 
 2. Wand load actions (Buttons that show up ONLY when you have text placed in the action string box)
-    - "Direct sync to wand": VERY USEFUL FOR REALLY BIG WANDS(tested with 800k+ spell actions),
-    this forces the spell actions to SYNC directly to the in game "gun.lua"(which is what actually handles the wand casts),
-    you can still cast spells normally, BUT the game will not spawn wand particles.
+- "Direct sync to wand": VERY USEFUL FOR REALLY BIG WANDS(tested with 800k+ spell actions),
+        this forces the spell actions to SYNC directly to the in game "gun.lua"(which is what actually handles the wand casts),
+        you can still cast spells normally, BUT the game will not spawn wand particles.
 
 **NOTE:** When using this method, refreshing the wand will make the game "FORCE" sync the dummy spell "add mana" in "gun.lua".
 So for example, any means of "opening the inventory", "swapping to another wand", "restarting the game" will refresh everything 
 and you will lose the deck that was force loaded :(
 
-    - "Load on held wand": NOT RECOMMENDED FOR BIG WANDS, this is what you would usually expect, loading all spell actions
-as child entities in the wand.
+- "Load on held wand": NOT RECOMMENDED FOR BIG WANDS, this is what you would usually expect, loading all spell actions
+        as child entities in the wand.
 
-    - "Clear": clears the Wand action string box's content.
+- "Clear": clears the Wand action string box's content.
 
 3. Wand Load metrics (Should show you some information regarding the previous wand loading process)
 
