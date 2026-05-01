@@ -47,9 +47,9 @@ The wand loader consists of a few things:
 
     [SPELL_ID3]: 1, [SPELL_ID4]: 2, [SPELL_ID5]: 3
     
-    we now have two sections, separated by a semicolon ";". first section are the spell ids / spell action aliases
+    we now have two sections, separated by a semicolon ";". first section are the spell ids / spell action alias groups
 
-    the second section denotes any spell action group aliases, so here we aliased "SPELL_ID3" as 1, "SPELL_ID4" as 2,
+    the second section denotes any spell action alias groups, so here we aliased "SPELL_ID3" as 1, "SPELL_ID4" as 2,
     and "SPELL_ID5" as 3.
 
 
@@ -60,7 +60,7 @@ The wand loader consists of a few things:
 
     1, 1, 2, 2, 2, 2, 2, HEAVY_BULLET;
 
-    MANA_REDUCE: 1, HEAVY_SHOT: 2
+    [MANA_REDUCE]: 1, [HEAVY_SHOT]: 2
 
 
     Sometimes your spell actions will repeat a bunch of times, and it's very annoying to type them all out, you can
