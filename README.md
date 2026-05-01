@@ -45,11 +45,11 @@ The wand loader consists of a few things:
     a more complicated format is:
     SPELL_ID1, SPELL_ID2, 2, 2, 3, 1;
 
-    SPELL_ID3: 1, SPELL_ID4: 2, SPELL_ID5: 3
+    [SPELL_ID3]: 1, [SPELL_ID4]: 2, [SPELL_ID5]: 3
     
     we now have two sections, separated by a semicolon ";". first section are the spell ids / spell action aliases
 
-    the second section denotes any spell action aliases, so here we aliased "SPELL_ID3" as 1, "SPELL_ID4" as 2,
+    the second section denotes any spell action group aliases, so here we aliased "SPELL_ID3" as 1, "SPELL_ID4" as 2,
     and "SPELL_ID5" as 3.
 
 
@@ -61,6 +61,18 @@ The wand loader consists of a few things:
     1, 1, 2, 2, 2, 2, 2, HEAVY_BULLET;
 
     MANA_REDUCE: 1, HEAVY_SHOT: 2
+
+
+    Sometimes your spell actions will repeat a bunch of times, and it's very annoying to type them all out, you can
+    instead create alias groups with multiple spell actions:
+
+    for example, this can be shortened into:
+    HEAVY_SHOT, HEAVY_BULLET, HEAVY_SHOT, HEAVY_BULLET, HEAVY_SHOT, HEAVY_BULLET, HEAVY_SHOT, HEAVY_BULLET
+
+    1, 1, 1, 1;
+    [HEAVY_SHOT, HEAVY_BULLET]: 1
+    
+    you can put 1 or more spell actions within the square brackets "[]", separated between ","
 
     Additional note: spaces and newlines are not necessary / mandatory, you can omit them entirely :)
     ```

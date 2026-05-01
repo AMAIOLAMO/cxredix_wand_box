@@ -89,38 +89,95 @@ assert_actions_ids_equal(
     {"ABC", "GEF", "GGGG", "GE123_2"}
 )
 
+-- old assertion
+-- assert_actions_ids_equal(
+--     "assert simple alias",
+--     cx_deserialize_to_action_ids(
+--         [[
+--             A,2,C;
+--             B: 2
+--         ]]
+--     ),
+--     {"A", "B", "C"}
+-- )
+--
+-- assert_actions_ids_equal(
+--     "assert alias weird naming",
+--     cx_deserialize_to_action_ids(
+--         [[
+--             A,2,C;
+--             B_123_453894____: 2
+--         ]]
+--     ),
+--     {"A", "B_123_453894____", "C"}
+-- )
+--
+-- assert_actions_ids_equal(
+--     "assert multiple alias",
+--     cx_deserialize_to_action_ids(
+--         [[
+--             A, 20, 20, 1, C, 20;
+--             B__33123_: 20, G_2: 1
+--         ]]
+--     ),
+--     {"A", "B__33123_", "B__33123_", "G_2", "C", "B__33123_"}
+-- )
+
 assert_actions_ids_equal(
-    "assert simple alias",
+    "assert simple alias group",
     cx_deserialize_to_action_ids(
         [[
             A,2,C;
-            B: 2
+            [B]: 2
         ]]
     ),
     {"A", "B", "C"}
 )
 
 assert_actions_ids_equal(
-    "assert alias weird naming",
+    "assert alias group weird naming",
     cx_deserialize_to_action_ids(
         [[
             A,2,C;
-            B_123_453894____: 2
+            [B_123_453894____]: 2
         ]]
     ),
     {"A", "B_123_453894____", "C"}
 )
 
 assert_actions_ids_equal(
-    "assert multiple alias",
+    "assert multiple single alias group",
     cx_deserialize_to_action_ids(
         [[
             A, 20, 20, 1, C, 20;
-            B__33123_: 20, G_2: 1
+            [B__33123_]: 20, [G_2]: 1
         ]]
     ),
     {"A", "B__33123_", "B__33123_", "G_2", "C", "B__33123_"}
 )
+
+assert_actions_ids_equal(
+    "assert multi alias group and single alias group",
+    cx_deserialize_to_action_ids(
+        [[
+            A, 20, 20, 1, C, 20;
+            [B, B, C, D]: 20, [G_2]: 1
+        ]]
+    ),
+    {"A", "B", "B", "C", "D", "B", "B", "C", "D", "G_2", "C", "B", "B", "C", "D"}
+)
+
+assert_actions_ids_equal(
+    "assert multi alias group",
+    cx_deserialize_to_action_ids(
+        [[
+            A, 20, 20, 1, C, 20;
+            [B, B, C, D]: 20, [C, G]: 1
+        ]]
+    ),
+    {"A", "B", "B", "C", "D", "B", "B", "C", "D", "C", "G", "C", "B", "B", "C", "D"}
+)
+
 
 print(
     ("Tests success %d, failed %d, total %d")
