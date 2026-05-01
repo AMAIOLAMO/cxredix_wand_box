@@ -90,7 +90,7 @@ function wand_create_action_id_at(wand_id, action_id, idx)
 end
 
 function wand_append_action_str(wand_id, raw_str)
-    local action_ids = cx_deserialize_to_action_ids(raw_str)
+    local action_ids = cx_parse_wndbx_fmt_to_action_ids(raw_str)
 
     for idx, action_id in ipairs(action_ids) do
         if action_id == nil or action_id == '' then

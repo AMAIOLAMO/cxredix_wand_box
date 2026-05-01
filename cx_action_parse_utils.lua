@@ -65,7 +65,7 @@
 --     return action_ids
 -- end
 
-function cx_deserialize_to_action_ids(raw_str)
+function cx_parse_wndbx_fmt_to_action_ids(raw_str)
     local action_ids = {}
 
     -- remove ALL whitespace

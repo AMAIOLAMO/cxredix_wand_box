@@ -228,10 +228,10 @@ if load_imgui ~= nil then
 
             cx_deck_sync.set_sync_actions(action_str)
 
-            -- TODO: instead of deserializing it, we simply let the wand parse utils to be able to parse
+            -- TODO: instead of parsing it, we simply let the wand parse utils to be able to parse
             -- count. counting the number of , then returning the amount of spells :) + 1 (there is an issue)
             -- where it might assume ",," as 1 spell, but that's trivial for now
-            local action_ids = cx_deserialize_to_action_ids(action_str)
+            local action_ids = cx_parse_wndbx_fmt_to_action_ids(action_str)
 
             prev_action_count = #action_ids
 

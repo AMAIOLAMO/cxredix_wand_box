@@ -46,7 +46,7 @@ function _add_card_to_deck(action_id, inventoryitem_id, uses_remaining, is_ident
 
         GamePrint("deck cleared, loading...")
 
-        local deck_action_ids = cx_deserialize_to_action_ids(raw_deck_str)
+        local deck_action_ids = cx_parse_wndbx_fmt_to_action_ids(raw_deck_str)
             
         for _, deck_action_id in ipairs(deck_action_ids) do
             cx_wndbx_old_add_card_to_deck(deck_action_id, inventoryitem_id, -1, is_identified)
