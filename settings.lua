@@ -3,13 +3,6 @@ dofile("data/scripts/lib/mod_settings.lua")
 local mod_id = "cxredix_wand_box"
 mod_settings_version = 1
 mod_settings = {
-    {
-        id = "enable_wand_loader",
-        ui_name = "Enable Wand Loader",
-        ui_description = "REQUIRES NOITA DEAR IMGUI TO BE ABOVE THE CURRENT MOD, enables fast wand loader",
-        value_default = true,
-        scope = MOD_SETTING_SCOPE_RUNTIME,
-    }
 }
 
 function ModSettingsUpdate(init_scope)

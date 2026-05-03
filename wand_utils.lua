@@ -3,6 +3,8 @@ dofile_once("data/scripts/lib/utilities.lua")
 
 dofile_once("mods/cxredix_wand_box/cx_actions_parser.lua")
 
+local cx_deck_sync = dofile_once("mods/cxredix_wand_box/cx_deck_sync.lua")
+
 function get_held_wand_id(player)
     local wands
     for _, child_id in ipairs(EntityGetAllChildren(player) or {}) do
@@ -79,8 +81,8 @@ function wand_set_deck_cap(wand_id, cap)
     end
 end
 
-function all_wand_force_refresh(player)
-    local sec_inv = EntityGetFirstComponent(player, "Inventory2Component")
+function force_refresh_all_wands_on_player(player_id)
+    local sec_inv = EntityGetFirstComponent(player_id, "Inventory2Component")
 
     if sec_inv == nil then
         return
@@ -128,4 +130,23 @@ end
 
 function wand_has_action(wand_id)
     return wand_is_action_count_greater_than(wand_id, 0)
+end
+
+function held_wand_deck_direct_sync(player_id, actions_str)
+    assert(player_id ~= nil, "Must sync with a non nil player id")
+
+    local held_wand_id = get_held_wand_id(player_id)
+
+    assert(held_wand_id ~= nil, "Cannot directly sync when there is no held wand")
+
+    -- we need to add 1 dummy spell if the wand is empty,
+    -- this is due to the fact that if the wand has 0 card actions
+    -- as entities in the game, refreshing the wand will not happen.
+
+    wand_clear_all_actions(held_wand_id)
+    wand_append_action_str(held_wand_id, "MANA_REDUCE")
+
+    cx_deck_sync.set_sync_actions(actions_str)
+
+    force_refresh_all_wands_on_player(player_id)
 end

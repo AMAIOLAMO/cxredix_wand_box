@@ -6,6 +6,9 @@ local root_path = "mods/cxredix_wand_box/"
 local cx_deck_sync = dofile_once(root_path .. "cx_deck_sync.lua")
 dofile_once(root_path .. "cx_action_parse_utils.lua")
 
+-- @module player_utils
+dofile_once(root_path .. "player_utils.lua")
+
 -- @module profile_timer
 local ProfileTimer = dofile_once(root_path .. "profile_timer.lua")
 
@@ -14,18 +17,13 @@ dofile_once(root_path .. "wand_utils.lua")
 
 ModLuaFileAppend("data/scripts/gun/gun.lua", root_path .. "gun_deck_handler.lua")
 
-
-function get_player_ids()
-    return EntityGetWithTag("player_unit")
+if ModIsEnabled("quant.ew") then
+    ModLuaFileAppend(
+        "mods/quant.ew/files/api/extra_modules.lua",
+        root_path .. "ew_gun_sync_module.lua"
+    )
 end
 
-function get_total_player_count()
-    return #get_player_ids()
-end
-
-function get_player_id(idx)
-    return EntityGetWithTag("player_unit")[idx]
-end
 
 function lerpf(a, b, t)
     return a + (b - a) * t
@@ -60,8 +58,8 @@ end
 
 -- use imgui when the function exists
 if load_imgui ~= nil then
-    function wand_loader_log_info(msg)
-        GamePrint("[Wand Loader]" .. msg)
+    function wndbx_log_info(msg)
+        GamePrint("[Wand Box]" .. msg)
     end
 
     local imgui = load_imgui({version="1.21.0", mod="CxRedixWandBox"})
@@ -92,6 +90,9 @@ if load_imgui ~= nil then
 
     local prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
     local dt_secs = 0
+
+    local wnd_loader_open = true
+    local wnd_utils_open  = true
 
     function OnWorldPostUpdate()
         dt_secs = GameGetRealWorldTimeSinceStarted() - prev_frame_real_world_time
@@ -134,22 +135,14 @@ if load_imgui ~= nil then
         )
         imgui.SetNextWindowSize(0, 0)
 
-        local settings_wand_loader_open = ModSettingGet("cxredix_wand_box.enable_wand_loader")
-        local new_wand_loader_open = settings_wand_loader_open
-
         if imgui.Begin("Main Window Menu", nil, window_flags) then
 
             if imgui.BeginMenuBar() then
                 if imgui.BeginMenu("CxRedix's Wand Box") then
 
                     local _
-                    _, new_wand_loader_open = imgui.MenuItem("Wand Loader", "", settings_wand_loader_open)
-
-                    if new_wand_loader_open ~= settings_wand_loader_open then
-                        ModSettingSetNextValue(
-                            "cxredix_wand_box.enable_wand_loader", new_wand_loader_open, false
-                        )
-                    end
+                    _, wnd_loader_open = imgui.MenuItem("Wand Loader", "", wnd_loader_open)
+                    _, wnd_utils_open = imgui.MenuItem("Wand Utils", "", wnd_utils_open)
 
                     imgui.EndMenu()
                 end
@@ -158,8 +151,12 @@ if load_imgui ~= nil then
             end
         end
 
-        if new_wand_loader_open and imgui.Begin("Wand Loader") then
+        if wnd_loader_open and imgui.Begin("Wand Loader") then
             render_wand_loader_window()
+        end
+
+        if wnd_utils_open and imgui.Begin("Wand Utils") then
+            render_wand_utils_window()
         end
 
 
@@ -167,7 +164,7 @@ if load_imgui ~= nil then
     
         local picked_player_id = get_player_id(picked_player_idx)
 
-        if player_pick_marker_id ~= nil then
+        if player_pick_marker_id ~= nil and picked_player_id ~= nil then
             local px, py = EntityGetTransform(picked_player_id)
 
             local PLAYER_HEAD_MARKER_Y_OFFSET = 20
@@ -262,19 +259,28 @@ if load_imgui ~= nil then
             end
         end
 
+        if actions_input_str ~= '' then
+            if imgui.Button("Direct sync to wand") then
+                local player_id = get_player_id(picked_player_idx)
+                begin_wand_direct_sync(
+                    player_id, actions_input_str
+                )
 
-        if actions_input_str ~= '' and imgui.Button("Direct sync to wand") then
-            begin_wand_direct_sync(actions_input_str)
-        end
+                if ModIsEnabled("quant.ew") then
+                    wndbx_log_info("Found Entangled Worlds, syncing wand to peers...")
+                    CrossCall("cx_wndbx_sync_actions", player_id, actions_input_str)
+                end
+            end
 
-        imgui.SameLine()
-        if actions_input_str ~= '' and imgui.Button("Load on held wand") then
-            begin_held_wand_load(actions_input_str)
-        end
+            imgui.SameLine()
+            if imgui.Button("Load on held wand") then
+                begin_held_wand_load(actions_input_str)
+            end
 
-        imgui.SameLine()
-        if actions_input_str ~= '' and imgui_cautious_btn("Clear") then
-            actions_input_str = ''
+            imgui.SameLine()
+            if imgui_cautious_btn("Clear") then
+                actions_input_str = ''
+            end
         end
 
 
@@ -313,40 +319,34 @@ if load_imgui ~= nil then
         imgui.End()
     end
 
-    function begin_wand_direct_sync(action_str)
-        local held_wand_id = get_held_wand_id(get_player_id(picked_player_idx))
+    function render_wand_utils_window()
+        if imgui.Button("Force wand refresh") then
+            force_refresh_all_wands_on_player(get_player_id(picked_player_idx))
+            wndbx_log_info("Refresh Complete")
+        end
+
+    end
+
+    function begin_wand_direct_sync(player_id, actions_str)
+        local held_wand_id = get_held_wand_id(player_id)
 
         if held_wand_id ~= nil then
-            wand_loader_log_info("Trying to sync")
+            wndbx_log_info("Trying to sync")
 
             load_wand_timer:clear()
             load_wand_timer:begin_append()
-
-            -- we need to add 1 dummy spell if the wand is empty,
-            -- this is due to the fact that if the wand has 0 card actions
-            -- as entities in the game, refreshing the wand will not happen.
-
-
-            wand_clear_all_actions(held_wand_id)
-            wand_append_action_str(held_wand_id, "MANA_REDUCE")
-
-
-            cx_deck_sync.set_sync_actions(action_str)
+            held_wand_deck_direct_sync(player_id, actions_str)
 
             -- TODO: instead of parsing it, we simply let the wand parse utils to be able to parse
             -- count. counting the number of , then returning the amount of spells :) + 1 (there is an issue)
             -- where it might assume ",," as 1 spell, but that's trivial for now
-            local action_ids = cx_parse_wndbx_fmt_to_action_ids(action_str)
+            local action_ids = cx_parse_wndbx_fmt_to_action_ids(actions_str)
 
             prev_action_count = #action_ids
 
-            wand_loader_log_info("Sync Notified, forcing wand refresh...")
-
-            all_wand_force_refresh(get_player_id(picked_player_idx))
-
-            wand_loader_log_info("Wand refresh complete :)")
+            wndbx_log_info("Sync Notified, Wand refresh complete.")
         else
-            wand_loader_log_info("Player is not holding a wand to directly sync to")
+            wndbx_log_info("Player is not holding a wand to directly sync to")
         end
     end
 
@@ -354,7 +354,7 @@ if load_imgui ~= nil then
         local held_wand = get_held_wand_id(get_player_id(picked_player_idx))
 
         if held_wand ~= nil then
-            wand_loader_log_info("Loading held wand")
+            wndbx_log_info("Loading held wand")
 
             load_wand_timer:clear()
             load_wand_timer:begin_append()
@@ -363,16 +363,16 @@ if load_imgui ~= nil then
 
             prev_action_count = wand_append_action_str(held_wand, action_str)
 
-            all_wand_force_refresh(get_player_id(picked_player_idx))
+            force_refresh_all_wands_on_player(get_player_id(picked_player_idx))
 
             load_wand_timer:end_append()
 
-            wand_loader_log_info(
+            wndbx_log_info(
                 "Wand Load complete, it took: " ..
                 tostring(load_wand_timer:get_total_secs())
             )
         else
-            wand_loader_log_info("Player is not holding a wand, load fail")
+            wndbx_log_info("Player is not holding a wand, load fail")
         end
     end
 else
