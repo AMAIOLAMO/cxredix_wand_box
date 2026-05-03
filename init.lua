@@ -263,15 +263,15 @@ if load_imgui ~= nil then
             if imgui.Button("Direct sync to wand") then
                 local player_id = get_player_id(picked_player_idx)
 
+                begin_wand_direct_sync(
+                    player_id, actions_input_str
+                )
+
                 if ModIsEnabled("quant.ew") then
                     wndbx_log_info("Found Entangled Worlds, syncing wand to peers...")
-                    -- this should call everywhere, including the current player,
-                    -- so syncing should happen locally as well
+                    -- this should call ONLY on peers, does not include the caller
                     CrossCall("cx_wndbx_current_player_sync_actions", actions_input_str)
                 else
-                    begin_wand_direct_sync(
-                        player_id, actions_input_str
-                    )
                 end
             end
 

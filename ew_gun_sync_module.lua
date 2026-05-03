@@ -12,7 +12,7 @@ local rpc = ew_api.new_rpc_namespace("cxredix_wndbx")
 rpc.opts_reliable()
 -- no need to call on self, as we sync the deck action locally already, we just need
 -- to notify all other peers to load the deck in their world
-rpc.opts_everywhere()
+-- rpc.opts_everywhere()
 
 function rpc.sync_current_player_deck_actions(actions_str)
     local rpc_caller_player_data = ew_api.rpc_player_data()
