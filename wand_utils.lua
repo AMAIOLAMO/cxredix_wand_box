@@ -28,13 +28,29 @@ function get_held_wand_id(player)
 end
 
 function wand_clear_all_actions(wand_id)
-    local children = EntityGetAllChildren(wand_id, "card_action") or {}
+    local child_ids = EntityGetAllChildren(wand_id, "card_action") or {}
 
-    for _, child_id in ipairs(children) do
+    for _, child_id in ipairs(child_ids) do
         EntityRemoveFromParent(child_id)
         EntityKill(child_id)
     end
 end
+
+function wand_get_all_action_ids(wand_id)
+    local child_ids = EntityGetAllChildren(wand_id, "card_action") or {}
+
+    local action_ids = {}
+
+    for _, child_id in ipairs(child_ids) do
+        local action_comp = EntityGetFirstComponent(child_id, "ItemActionComponent")
+        local action_id = ComponentGetValue2(action_comp, "action_id")
+
+        table.insert(action_ids, action_id)
+    end
+
+    return action_ids
+end
+
 
 function wand_is_action_count_greater_than(wand_id, threshold)
     local children = EntityGetAllChildren(wand_id, "card_action") or {}

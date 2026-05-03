@@ -15,22 +15,30 @@ dofile_once(root_path .. "wand_utils.lua")
 ModLuaFileAppend("data/scripts/gun/gun.lua", root_path .. "gun_deck_handler.lua")
 
 
-local player
+function get_players()
+    return EntityGetWithTag("player_unit")
+end
 
-function get_player()
-    if player == nil then
-        player = EntityGetWithTag("player_unit")[1]
-    end
+function get_total_player_count()
+    return #get_players()
+end
 
-    if player == nil then
-        return nil
-    end
-
-    return player
+function get_player(idx)
+    return EntityGetWithTag("player_unit")[idx]
 end
 
 function lerpf(a, b, t)
     return a + (b - a) * t
+end
+
+function clampi(v, min_val, max_val)
+    assert(
+        min_val <= max_val,
+        string.format(
+            "minimum value %d cannot be bigger than maximum value %d", min_val, max_val
+        )
+    )
+    return math.max(math.min(v, max_val), min_val)
 end
 
 function OnWorldInitialized()
@@ -59,11 +67,16 @@ if load_imgui ~= nil then
         return ret_value
     end
 
+    -- function imgui_input_int_clamped(id, value, max, min)
+    --
+    -- end
+
+
+    local load_wand_timer = ProfileTimer.new()
 
     local actions_input_str = ""
     local prev_action_count = -1
-
-    local load_wand_timer = ProfileTimer.new()
+    local picked_player_idx = 1
 
     function OnWorldPostUpdate()
         imgui.SetNextWindowSize(800, 400, imgui.Cond.Once)
@@ -158,6 +171,15 @@ if load_imgui ~= nil then
             imgui.InputTextFlags.EnterReturnsTrue
         )
 
+        imgui.Text(
+            string.format("Pick player [%d total]: ", get_total_player_count())
+        )
+        imgui.SameLine()
+
+        _, picked_player_idx = imgui.InputInt("##PickedPlayerIdx", picked_player_idx)
+
+        picked_player_idx = clampi(picked_player_idx, 1, get_total_player_count())
+
         if actions_input_str ~= '' and imgui.Button("Direct sync to wand") then
             begin_wand_direct_sync(actions_input_str)
         end
@@ -209,7 +231,7 @@ if load_imgui ~= nil then
     end
 
     function begin_wand_direct_sync(action_str)
-        local held_wand_id = get_held_wand_id(get_player())
+        local held_wand_id = get_held_wand_id(get_player(picked_player_idx))
 
         if held_wand_id ~= nil then
             wand_loader_log_info("Trying to sync")
@@ -237,7 +259,7 @@ if load_imgui ~= nil then
 
             wand_loader_log_info("Sync Notified, forcing wand refresh...")
 
-            all_wand_force_refresh(get_player())
+            all_wand_force_refresh(get_player(picked_player_idx))
 
             wand_loader_log_info("Wand refresh complete :)")
         else
@@ -246,7 +268,7 @@ if load_imgui ~= nil then
     end
 
     function begin_held_wand_load(action_str)
-        local held_wand = get_held_wand_id(get_player())
+        local held_wand = get_held_wand_id(get_player(picked_player_idx))
 
         if held_wand ~= nil then
             wand_loader_log_info("Loading held wand")
@@ -258,7 +280,7 @@ if load_imgui ~= nil then
 
             prev_action_count = wand_append_action_str(held_wand, action_str)
 
-            all_wand_force_refresh(get_player())
+            all_wand_force_refresh(get_player(picked_player_idx))
 
             load_wand_timer:end_append()
 
