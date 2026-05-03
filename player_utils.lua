@@ -9,3 +9,8 @@ end
 function get_player_id(idx)
     return EntityGetWithTag("player_unit")[idx]
 end
+
+function get_first_player_id()
+    return get_player_id(1)
+end
+

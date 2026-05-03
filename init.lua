@@ -262,13 +262,16 @@ if load_imgui ~= nil then
         if actions_input_str ~= '' then
             if imgui.Button("Direct sync to wand") then
                 local player_id = get_player_id(picked_player_idx)
-                begin_wand_direct_sync(
-                    player_id, actions_input_str
-                )
 
                 if ModIsEnabled("quant.ew") then
                     wndbx_log_info("Found Entangled Worlds, syncing wand to peers...")
-                    CrossCall("cx_wndbx_sync_actions", player_id, actions_input_str)
+                    -- this should call everywhere, including the current player,
+                    -- so syncing should happen locally as well
+                    CrossCall("cx_wndbx_current_player_sync_actions", actions_input_str)
+                else
+                    begin_wand_direct_sync(
+                        player_id, actions_input_str
+                    )
                 end
             end
 
@@ -325,6 +328,25 @@ if load_imgui ~= nil then
             wndbx_log_info("Refresh Complete")
         end
 
+        if imgui.Button("Copy held wand str") then
+            local held_wand_id = get_held_wand_id(get_first_player_id())
+
+            if held_wand_id == nil then
+                wndbx_log_info("Cannot find held wand on the first player")
+            else
+                GamePrint("found player and held wand")
+
+                local actions_str = wand_get_all_actions_as_actions_str(
+                    held_wand_id
+                )
+
+                imgui.SetClipboardText(actions_str)
+
+                wndbx_log_info(
+                    string.format("Copy complete, total of %d characters", #actions_str)
+                )
+            end
+        end
     end
 
     function begin_wand_direct_sync(player_id, actions_str)

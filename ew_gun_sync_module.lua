@@ -12,52 +12,34 @@ local rpc = ew_api.new_rpc_namespace("cxredix_wndbx")
 rpc.opts_reliable()
 -- no need to call on self, as we sync the deck action locally already, we just need
 -- to notify all other peers to load the deck in their world
--- rpc.opts_everywhere()
+rpc.opts_everywhere()
 
-function rpc.sync_deck_actions(peer_id, action_str)
-    local player_id = ctx.players[peer_id].entity
+function rpc.sync_current_player_deck_actions(actions_str)
+    local rpc_caller_player_data = ew_api.rpc_player_data()
 
-    if player_id ~= nil then
+    if rpc_caller_player_data ~= nil then
+        local player_id = ew_api.rpc_player_data().entity
+        GamePrint("Received sync from peer")
+
         GamePrint(
-            string.format("Received sync from peer, calling from peer id: %d", peer_id)
+            string.format("received action string character count: %d", #actions_str)
         )
 
-        GamePrint(
-            string.format("received action string character count: %d", #action_str)
-        )
+        GamePrint("Syncing deck...")
 
-        GamePrint("Updating deck...")
-        cx_deck_sync.set_sync_actions(action_str)
-        GamePrint("Deck updated!")
+        held_wand_deck_direct_sync(player_id, actions_str)
 
-        GamePrint("Forcing wand refresh on peer player...")
-
-        force_refresh_all_wands_on_player(player_id)
-
-        GamePrint("Refresh complete on peer player")
+        GamePrint("Deck synced!")
     else
         GamePrint(
-            string.format(
-                "Received rpc sync deck actions, but the player entity for peer_id %d is nil!",
-                peer_id
-            )
+            "Received rpc sync deck actions, but the player entity from caller is nil"
         )
     end
 end
 
-util.add_cross_call("cx_wndbx_sync_actions", function(entity_id, action_str)
-    GamePrint(
-        string.format(
-            "From entity id: %d, to my player entity id: %d, my peer id is: %d",
-                entity_id, ctx.my_player.entity, ctx.my_id
-        )
-    )
-
-    if entity_id == ctx.my_player.entity then
-        rpc.sync_deck_actions(ctx.my_id, action_str)
-    end
+util.add_cross_call("cx_wndbx_current_player_sync_actions", function(actions_str)
+    rpc.sync_current_player_deck_actions(actions_str)
 end)
-
 
 
 

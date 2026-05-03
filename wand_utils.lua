@@ -1,7 +1,7 @@
 dofile_once("data/scripts/lib/coroutines.lua")
 dofile_once("data/scripts/lib/utilities.lua")
 
-dofile_once("mods/cxredix_wand_box/cx_actions_parser.lua")
+dofile_once("mods/cxredix_wand_box/cx_action_parse_utils.lua")
 
 local cx_deck_sync = dofile_once("mods/cxredix_wand_box/cx_deck_sync.lua")
 
@@ -44,13 +44,29 @@ function wand_get_all_action_ids(wand_id)
     local action_ids = {}
 
     for _, child_id in ipairs(child_ids) do
-        local action_comp = EntityGetFirstComponent(child_id, "ItemActionComponent")
+        local action_comp = EntityGetFirstComponentIncludingDisabled(child_id, "ItemActionComponent")
         local action_id = ComponentGetValue2(action_comp, "action_id")
 
         table.insert(action_ids, action_id)
     end
 
     return action_ids
+end
+
+function wand_get_all_actions_as_actions_str(wand_id)
+    local action_ids = wand_get_all_action_ids(wand_id)
+
+    local actions_str = ""
+
+    for i, action_id in ipairs(action_ids) do
+        actions_str = actions_str .. action_id
+
+        if i ~= #action_ids then
+            actions_str = actions_str .. ","
+        end
+    end
+
+    return actions_str
 end
 
 
