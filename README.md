@@ -24,7 +24,7 @@ You can click on it and it should show up all the tools that are available! (The
 
 ### Wand Loader
 
-![Wand loader visual](vendor/wand_loader_ui_visual.png)
+![Wand loader visual](vendor/readme/wand_loader_ui_visual.png)
 
 The wand loader consists of a few things:
 

@@ -15,15 +15,15 @@ dofile_once(root_path .. "wand_utils.lua")
 ModLuaFileAppend("data/scripts/gun/gun.lua", root_path .. "gun_deck_handler.lua")
 
 
-function get_players()
+function get_player_ids()
     return EntityGetWithTag("player_unit")
 end
 
 function get_total_player_count()
-    return #get_players()
+    return #get_player_ids()
 end
 
-function get_player(idx)
+function get_player_id(idx)
     return EntityGetWithTag("player_unit")[idx]
 end
 
@@ -41,10 +41,21 @@ function clampi(v, min_val, max_val)
     return math.max(math.min(v, max_val), min_val)
 end
 
+local player_pick_marker_id = nil
+local player_pick_marker_sprite_id = nil
+
 function OnWorldInitialized()
     -- clear any previous un-synced actions
     cx_deck_sync.consume_sync()
     cx_deck_sync.clear_sync_complete_flag()
+
+    player_pick_marker_id = EntityLoad(root_path .. "vendor/entities/player_marker.xml")
+
+    player_pick_marker_sprite_id = EntityGetFirstComponentIncludingDisabled(
+        player_pick_marker_id, "SpriteComponent"
+    )
+
+    ComponentSetValue2(player_pick_marker_sprite_id, "alpha", 0)
 end
 
 -- use imgui when the function exists
@@ -77,8 +88,15 @@ if load_imgui ~= nil then
     local actions_input_str = ""
     local prev_action_count = -1
     local picked_player_idx = 1
+    local picked_player_marker_fade_wait_timer = 0
+
+    local prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
+    local dt_secs = 0
 
     function OnWorldPostUpdate()
+        dt_secs = GameGetRealWorldTimeSinceStarted() - prev_frame_real_world_time
+        prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
+
         imgui.SetNextWindowSize(800, 400, imgui.Cond.Once)
 
         if cx_deck_sync.is_sync_complete_flag_marked() then
@@ -144,6 +162,54 @@ if load_imgui ~= nil then
             render_wand_loader_window()
         end
 
+
+        -- render marker on player
+    
+        local picked_player_id = get_player_id(picked_player_idx)
+
+        if player_pick_marker_id ~= nil then
+            local px, py = EntityGetTransform(picked_player_id)
+
+            local PLAYER_HEAD_MARKER_Y_OFFSET = 20
+
+            local ANIMATION_SPEED = 3
+
+            local AMPLITUDE = 3
+
+            local mx, my = EntityGetTransform(player_pick_marker_id)
+    
+            -- target position
+            local tx = px
+            local ty = py - PLAYER_HEAD_MARKER_Y_OFFSET +
+                math.sin(GameGetRealWorldTimeSinceStarted() * ANIMATION_SPEED) *
+                AMPLITUDE
+
+            local LERP_SPEED = 5
+
+            -- lerping tweening animation hehe :D
+            mx = lerpf(mx, tx, dt_secs * LERP_SPEED)
+            my = lerpf(my, ty, dt_secs * LERP_SPEED)
+
+            local alpha = ComponentGetValue2(player_pick_marker_sprite_id, "alpha")
+
+            local FADE_SPEED = 3
+
+            if picked_player_marker_fade_wait_timer <= 0 then
+                ComponentSetValue2(
+                    player_pick_marker_sprite_id,
+                    "alpha",
+                    lerpf(alpha, 0, dt_secs * FADE_SPEED)
+                )
+            else
+                picked_player_marker_fade_wait_timer =
+                    picked_player_marker_fade_wait_timer - dt_secs
+            end
+
+            EntitySetTransform(
+                player_pick_marker_id,
+                mx, my
+            )
+        end
     end
 
     function render_wand_loader_window()
@@ -171,14 +237,31 @@ if load_imgui ~= nil then
             imgui.InputTextFlags.EnterReturnsTrue
         )
 
-        imgui.Text(
-            string.format("Pick player [%d total]: ", get_total_player_count())
-        )
-        imgui.SameLine()
+        -- player picker, only shows up if there are more than 1 player
+        -- (are there any edge cases??)
+        if get_total_player_count() > 1 then
+            imgui.Text(
+                string.format("Pick player [%d total]: ", get_total_player_count())
+            )
+            imgui.SameLine()
 
-        _, picked_player_idx = imgui.InputInt("##PickedPlayerIdx", picked_player_idx)
+            local old_picked_player_idx = picked_player_idx
 
-        picked_player_idx = clampi(picked_player_idx, 1, get_total_player_count())
+            _, picked_player_idx = imgui.InputInt("##PickedPlayerIdx", picked_player_idx)
+
+
+            picked_player_idx = clampi(picked_player_idx, 1, get_total_player_count())
+
+            if old_picked_player_idx ~= picked_player_idx then
+                ComponentSetValue2(
+                    player_pick_marker_sprite_id,
+                    "alpha",
+                    1
+                )
+                picked_player_marker_fade_wait_timer = 5
+            end
+        end
+
 
         if actions_input_str ~= '' and imgui.Button("Direct sync to wand") then
             begin_wand_direct_sync(actions_input_str)
@@ -231,7 +314,7 @@ if load_imgui ~= nil then
     end
 
     function begin_wand_direct_sync(action_str)
-        local held_wand_id = get_held_wand_id(get_player(picked_player_idx))
+        local held_wand_id = get_held_wand_id(get_player_id(picked_player_idx))
 
         if held_wand_id ~= nil then
             wand_loader_log_info("Trying to sync")
@@ -259,7 +342,7 @@ if load_imgui ~= nil then
 
             wand_loader_log_info("Sync Notified, forcing wand refresh...")
 
-            all_wand_force_refresh(get_player(picked_player_idx))
+            all_wand_force_refresh(get_player_id(picked_player_idx))
 
             wand_loader_log_info("Wand refresh complete :)")
         else
@@ -268,7 +351,7 @@ if load_imgui ~= nil then
     end
 
     function begin_held_wand_load(action_str)
-        local held_wand = get_held_wand_id(get_player(picked_player_idx))
+        local held_wand = get_held_wand_id(get_player_id(picked_player_idx))
 
         if held_wand ~= nil then
             wand_loader_log_info("Loading held wand")
@@ -280,7 +363,7 @@ if load_imgui ~= nil then
 
             prev_action_count = wand_append_action_str(held_wand, action_str)
 
-            all_wand_force_refresh(get_player(picked_player_idx))
+            all_wand_force_refresh(get_player_id(picked_player_idx))
 
             load_wand_timer:end_append()
 
