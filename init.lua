@@ -14,6 +14,10 @@ local wand_helper_tool = dofile_once(tools_path .. "wand_helper_tool.lua")
 -- @module "tools.wand_loader_tool"
 local wand_loader_tool = dofile_once(tools_path .. "wand_loader_tool.lua")
 
+-- @module "tools.wand_loader_tool"
+local wand_stats_tool = dofile_once(tools_path .. "wand_stats_tool.lua")
+
+dofile_once(core_path .. "logger.lua")
 
 ModLuaFileAppend("data/scripts/gun/gun.lua", core_path .. "gun_deck_handler.lua")
 
@@ -25,7 +29,7 @@ if ModIsEnabled("quant.ew") then
 end
 
 local tools = {
-    wand_helper_tool, wand_loader_tool
+    wand_helper_tool, wand_loader_tool, wand_stats_tool
 }
 
 
@@ -59,6 +63,7 @@ if load_imgui ~= nil then
     end
 
 
+    -- allow for multi player selection & multi wand selection
     local wndbx_state = {
         picked_player_idx = 1
     }
