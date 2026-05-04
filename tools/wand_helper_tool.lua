@@ -15,6 +15,10 @@ local M = {
 
 
 function M.render_window(imgui, wndbox_state)
+    imgui.Text(
+        string.format("Targeting player: [%d]", wndbox_state.picked_player_idx)
+    )
+
     if imgui.Button("Force wand refresh") then
         force_refresh_all_wands_on_player(
             get_player_id(wndbox_state.picked_player_idx)
@@ -23,10 +27,12 @@ function M.render_window(imgui, wndbox_state)
     end
 
     if imgui.Button("Copy held wand str") then
-        local held_wand_id = get_held_wand_id(get_first_player_id())
+        local held_wand_id = get_held_wand_id(
+            get_player_id(wndbox_state.picked_player_idx)
+        )
 
         if held_wand_id == nil then
-            wndbx_log_info("Cannot find held wand on the first player")
+            wndbx_log_info("Cannot find held wand on the picked player")
         else
             GamePrint("found player and held wand")
 
