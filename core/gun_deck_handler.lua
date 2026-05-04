@@ -1,7 +1,7 @@
 -- appended to data/scripts/gun/gun.lua
 
-dofile_once("mods/cxredix_wand_box/cx_action_parse_utils.lua")
-local cx_deck_sync = dofile_once("mods/cxredix_wand_box/cx_deck_sync.lua")
+dofile_once("mods/cxredix_wand_box/core/cx_action_parse_utils.lua")
+local cx_deck_sync = dofile_once("mods/cxredix_wand_box/core/cx_deck_sync.lua")
 
 local cx_wndbx_old_add_card_to_deck = _add_card_to_deck
 

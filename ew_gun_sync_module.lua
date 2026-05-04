@@ -3,9 +3,9 @@ local M = {}
 
 local ew_api = dofile_once("mods/quant.ew/files/api/ew_api.lua")
 
-local cx_deck_sync = dofile_once("mods/cxredix_wand_box/cx_deck_sync.lua")
+local cx_deck_sync = dofile_once("mods/cxredix_wand_box/core/cx_deck_sync.lua")
 
-dofile_once("mods/cxredix_wand_box/wand_utils.lua")
+dofile_once("mods/cxredix_wand_box/core/wand_utils.lua")
 
 local rpc = ew_api.new_rpc_namespace("cxredix_wndbx")
 

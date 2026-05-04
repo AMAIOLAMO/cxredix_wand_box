@@ -1,4 +1,4 @@
-require("cx_action_parse_utils")
+require("core.cx_action_parse_utils")
 
 local success_count = 0
 local total_count = 0

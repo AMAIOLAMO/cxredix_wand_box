@@ -1,9 +1,12 @@
 dofile_once("data/scripts/lib/coroutines.lua")
 dofile_once("data/scripts/lib/utilities.lua")
 
-dofile_once("mods/cxredix_wand_box/cx_action_parse_utils.lua")
+local root_path = "mods/cxredix_wand_box/"
+local core_path = root_path .. "core/"
 
-local cx_deck_sync = dofile_once("mods/cxredix_wand_box/cx_deck_sync.lua")
+dofile_once(core_path .. "cx_action_parse_utils.lua")
+
+local cx_deck_sync = dofile_once(core_path .. "cx_deck_sync.lua")
 
 function get_held_wand_id(player)
     local wands

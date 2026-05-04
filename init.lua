@@ -2,20 +2,31 @@ dofile_once("data/scripts/lib/coroutines.lua")
 dofile_once("data/scripts/lib/utilities.lua")
 
 local root_path = "mods/cxredix_wand_box/"
+local core_path = root_path .. "core/"
+local tools_path = root_path .. "tools/"
 
-local cx_deck_sync = dofile_once(root_path .. "cx_deck_sync.lua")
-dofile_once(root_path .. "cx_action_parse_utils.lua")
+-- @module core.cx_deck_sync
+local cx_deck_sync = dofile_once(core_path .. "cx_deck_sync.lua")
 
--- @module player_utils
-dofile_once(root_path .. "player_utils.lua")
+-- @module core.cx_action_parse_utils
+dofile_once(core_path .. "cx_action_parse_utils.lua")
 
--- @module profile_timer
-local ProfileTimer = dofile_once(root_path .. "profile_timer.lua")
+-- @module core.player_utils
+dofile_once(core_path .. "player_utils.lua")
 
--- @module wand_utils
-dofile_once(root_path .. "wand_utils.lua")
+-- @module core.profile_timer
+local ProfileTimer = dofile_once(core_path .. "profile_timer.lua")
 
-ModLuaFileAppend("data/scripts/gun/gun.lua", root_path .. "gun_deck_handler.lua")
+-- @module core.wand_utils
+dofile_once(core_path .. "wand_utils.lua")
+
+-- @module core.math_utils
+local umath = dofile_once(core_path .. "math_utils.lua")
+
+-- @module "tools.wand_helper_tool"
+local wand_helper_tool = dofile_once(tools_path .. "wand_helper_tool.lua")
+
+ModLuaFileAppend("data/scripts/gun/gun.lua", core_path .. "gun_deck_handler.lua")
 
 if ModIsEnabled("quant.ew") then
     ModLuaFileAppend(
@@ -24,20 +35,6 @@ if ModIsEnabled("quant.ew") then
     )
 end
 
-
-function lerpf(a, b, t)
-    return a + (b - a) * t
-end
-
-function clampi(v, min_val, max_val)
-    assert(
-        min_val <= max_val,
-        string.format(
-            "minimum value %d cannot be bigger than maximum value %d", min_val, max_val
-        )
-    )
-    return math.max(math.min(v, max_val), min_val)
-end
 
 local player_pick_marker_id = nil
 local player_pick_marker_sprite_id = nil
@@ -76,23 +73,23 @@ if load_imgui ~= nil then
         return ret_value
     end
 
-    -- function imgui_input_int_clamped(id, value, max, min)
-    --
-    -- end
-
 
     local load_wand_timer = ProfileTimer.new()
 
+    local wndbx_state = {
+        picked_player_idx = 1
+    }
+
     local actions_input_str = ""
     local prev_action_count = -1
-    local picked_player_idx = 1
+    -- local picked_player_idx = 1
     local picked_player_marker_fade_wait_timer = 0
 
     local prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
     local dt_secs = 0
 
     local wnd_loader_open = true
-    local wnd_utils_open  = true
+    -- local wnd_helper_open  = true
 
     function OnWorldPostUpdate()
         dt_secs = GameGetRealWorldTimeSinceStarted() - prev_frame_real_world_time
@@ -142,7 +139,10 @@ if load_imgui ~= nil then
 
                     local _
                     _, wnd_loader_open = imgui.MenuItem("Wand Loader", "", wnd_loader_open)
-                    _, wnd_utils_open = imgui.MenuItem("Wand Utils", "", wnd_utils_open)
+
+                    _, wand_helper_tool.is_open = imgui.MenuItem(
+                        wand_helper_tool.name, "", wand_helper_tool.is_open
+                    )
 
                     imgui.EndMenu()
                 end
@@ -151,18 +151,24 @@ if load_imgui ~= nil then
             end
         end
 
-        if wnd_loader_open and imgui.Begin("Wand Loader") then
+        local _
+        _, wnd_loader_open = imgui.Begin("Wand Loader", wnd_loader_open)
+
+        if wnd_loader_open then
             render_wand_loader_window()
         end
 
-        if wnd_utils_open and imgui.Begin("Wand Utils") then
-            render_wand_utils_window()
+        _, wand_helper_tool.is_open = imgui.Begin(
+            wand_helper_tool.name, wand_helper_tool.is_open
+        )
+
+        if wand_helper_tool.is_open then
+            wand_helper_tool.render_window(imgui, wndbx_state)
         end
 
 
         -- render marker on player
-    
-        local picked_player_id = get_player_id(picked_player_idx)
+        local picked_player_id = get_player_id(wndbx_state.picked_player_idx)
 
         if player_pick_marker_id ~= nil and picked_player_id ~= nil then
             local px, py = EntityGetTransform(picked_player_id)
@@ -184,8 +190,8 @@ if load_imgui ~= nil then
             local LERP_SPEED = 5
 
             -- lerping tweening animation hehe :D
-            mx = lerpf(mx, tx, dt_secs * LERP_SPEED)
-            my = lerpf(my, ty, dt_secs * LERP_SPEED)
+            mx = umath.lerpf(mx, tx, dt_secs * LERP_SPEED)
+            my = umath.lerpf(my, ty, dt_secs * LERP_SPEED)
 
             local alpha = ComponentGetValue2(player_pick_marker_sprite_id, "alpha")
 
@@ -195,7 +201,7 @@ if load_imgui ~= nil then
                 ComponentSetValue2(
                     player_pick_marker_sprite_id,
                     "alpha",
-                    lerpf(alpha, 0, dt_secs * FADE_SPEED)
+                    umath.lerpf(alpha, 0, dt_secs * FADE_SPEED)
                 )
             else
                 picked_player_marker_fade_wait_timer =
@@ -242,14 +248,17 @@ if load_imgui ~= nil then
             )
             imgui.SameLine()
 
-            local old_picked_player_idx = picked_player_idx
+            local old_picked_player_idx = wndbx_state.picked_player_idx
 
-            _, picked_player_idx = imgui.InputInt("##PickedPlayerIdx", picked_player_idx)
+            _, wndbx_state.picked_player_idx = imgui.InputInt(
+                "##PickedPlayerIdx", wndbx_state.picked_player_idx
+            )
 
+            wndbx_state.picked_player_idx = umath.clampi(
+                wndbx_state.picked_player_idx, 1, get_total_player_count()
+            )
 
-            picked_player_idx = clampi(picked_player_idx, 1, get_total_player_count())
-
-            if old_picked_player_idx ~= picked_player_idx then
+            if old_picked_player_idx ~= wndbx_state.picked_player_idx then
                 ComponentSetValue2(
                     player_pick_marker_sprite_id,
                     "alpha",
@@ -261,7 +270,7 @@ if load_imgui ~= nil then
 
         if actions_input_str ~= '' then
             if imgui.Button("Direct sync to wand") then
-                local player_id = get_player_id(picked_player_idx)
+                local player_id = get_player_id(wndbx_state.picked_player_idx)
 
                 begin_wand_direct_sync(
                     player_id, actions_input_str
@@ -322,33 +331,6 @@ if load_imgui ~= nil then
         imgui.End()
     end
 
-    function render_wand_utils_window()
-        if imgui.Button("Force wand refresh") then
-            force_refresh_all_wands_on_player(get_player_id(picked_player_idx))
-            wndbx_log_info("Refresh Complete")
-        end
-
-        if imgui.Button("Copy held wand str") then
-            local held_wand_id = get_held_wand_id(get_first_player_id())
-
-            if held_wand_id == nil then
-                wndbx_log_info("Cannot find held wand on the first player")
-            else
-                GamePrint("found player and held wand")
-
-                local actions_str = wand_get_all_actions_as_actions_str(
-                    held_wand_id
-                )
-
-                imgui.SetClipboardText(actions_str)
-
-                wndbx_log_info(
-                    string.format("Copy complete, total of %d characters", #actions_str)
-                )
-            end
-        end
-    end
-
     function begin_wand_direct_sync(player_id, actions_str)
         local held_wand_id = get_held_wand_id(player_id)
 
@@ -373,7 +355,7 @@ if load_imgui ~= nil then
     end
 
     function begin_held_wand_load(action_str)
-        local held_wand = get_held_wand_id(get_player_id(picked_player_idx))
+        local held_wand = get_held_wand_id(get_player_id(wndbx_state.picked_player_idx))
 
         if held_wand ~= nil then
             wndbx_log_info("Loading held wand")
@@ -385,7 +367,9 @@ if load_imgui ~= nil then
 
             prev_action_count = wand_append_action_str(held_wand, action_str)
 
-            force_refresh_all_wands_on_player(get_player_id(picked_player_idx))
+            force_refresh_all_wands_on_player(
+                get_player_id(wndbx_state.picked_player_idx)
+            )
 
             load_wand_timer:end_append()
 
