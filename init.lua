@@ -5,19 +5,20 @@ local root_path = "mods/cxredix_wand_box/"
 local core_path = root_path .. "core/"
 local tools_path = root_path .. "tools/"
 
--- @module core.cx_deck_sync
+--- @module 'cx_deck_sync'
 local cx_deck_sync = dofile_once(core_path .. "cx_deck_sync.lua")
 
--- @module "tools.wand_helper_tool"
+--- @module "tools.wand_helper_tool"
 local wand_helper_tool = dofile_once(tools_path .. "wand_helper_tool.lua")
 
--- @module "tools.wand_loader_tool"
+--- @module "tools.wand_loader_tool"
 local wand_loader_tool = dofile_once(tools_path .. "wand_loader_tool.lua")
 
--- @module "tools.wand_loader_tool"
+--- @module "tools.wand_loader_tool"
 local wand_stats_tool = dofile_once(tools_path .. "wand_stats_tool.lua")
 
-dofile_once(core_path .. "logger.lua")
+--- @module "core.logger"
+local logger = dofile_once(core_path .. "logger.lua")
 
 ModLuaFileAppend("data/scripts/gun/gun.lua", core_path .. "gun_deck_handler.lua")
 
@@ -49,18 +50,6 @@ end
 -- use imgui when the function exists
 if load_imgui ~= nil then
     local imgui = load_imgui({version="1.21.0", mod="CxRedixWandBox"})
-
-    function imgui_cautious_btn(id)
-        imgui.PushStyleColor(imgui.Col.Button, 0.8, 0.45, 0.45)
-        imgui.PushStyleColor(imgui.Col.ButtonHovered, 1, 0.6, 0.6)
-        imgui.PushStyleColor(imgui.Col.ButtonActive, 0.7, 0.45, 0.45)
-
-        local ret_value = imgui.Button(id)
-
-        imgui.PopStyleColor(3)
-
-        return ret_value
-    end
 
 
     -- allow for multi player selection & multi wand selection
@@ -162,7 +151,7 @@ else
 
     function OnWorldPostUpdate()
         if warn_frames <= 0 then
-            GamePrint("[Wand Box] Cannot find Noita Dear Imgui, It is either you didn't install it")
+            logger.log_info("[Wand Box] Cannot find Noita Dear Imgui, It is either you didn't install it")
             GamePrint("[Wand Box] Or that you didn't put Wand Box mod below Noita Dear Imgui in the mod list :3")
             warn_frames = warn_notify_interval_frames
         end

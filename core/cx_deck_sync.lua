@@ -1,3 +1,4 @@
+--- @class cx_deck_sync
 local M = {}
 
 function M.set_sync_actions(raw_actions_str)

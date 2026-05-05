@@ -1,71 +1,54 @@
--- OLD PARSING METHOD :3
--- function cx_deserialize_to_action_ids(raw_str)
---     -- FORMAT:
---     -- SPELL_ID1, SPELL_ID2, 2, 2, 3, 1;
---     --
---     -- SPELL_ID3: 1, SPELL_ID4: 2, SPELL_ID5: 3
---     --
---     -- RESULT:
---     -- should return {"SPELL_ID1", "SPELL_ID2", "SPELL_ID4", "SPELL_ID4", "SPELL_ID5", "SPELL_ID3"}
---     -- you can see the numbers are associated back :)
---     --
---     -- the first section is spell id and associates
---     -- the second section is an optional section where if you have highly repeating
---     -- spells, you can shrink your spell string by compacting them into a number :)
---     --
---     -- If we ignore the second section, it creates a backwards compatible format:
---     --
---     -- SPELL_ID1, SPELL_ID2, SPELL_ID3, SPELL_ID1
---
---     -- still works regardless :D pretty cool!
---
---     local action_ids = {}
---
---     -- remove ALL whitespace (spaces, tabs, newlines)
---     raw_str = raw_str:gsub("%s+", "")
---
---     -- split into sections by ';'
---     local sections = {}
---     for part in string.gmatch(raw_str, "([^;]+)") do
---         table.insert(sections, part)
---     end
---
---     local main_section = sections[1] or ""
---     local cache_section = sections[2]
---
---     -- FORM: [number] = "SPELL_ID"
---     local action_cache = {}
---
---     -- parse cache section (SPELL_ID3:1,SPELL_ID4:2,...)
---     if cache_section and cache_section ~= "" then
---         for pair in string.gmatch(cache_section, "([^,]+)") do
---             local spell, index = pair:match("([^:]+):(%d+)")
---             if spell and index then
---                 action_cache[tonumber(index)] = spell
---             end
---         end
---     end
---
---     -- parse main section
---     for token in string.gmatch(main_section, "([^,]+)") do
---         local num = tonumber(token)
---
---         if num then
---             -- numeric reference → resolve from cache
---             local resolved = action_cache[num]
---             if resolved then
---                 table.insert(action_ids, resolved)
---             end
---         else
---             -- direct spell id
---             table.insert(action_ids, token)
---         end
---     end
---
---     return action_ids
--- end
+--- @class cx_action_parse_utils
+local M = {}
 
-function cx_parse_wndbx_fmt_to_action_ids(raw_str)
+-- ```
+-- The most simplest format is:
+-- SPELL_ID1, SPELL_ID2, SPELL_ID3, SPELL_ID1
+--
+-- this should create 4 spell actions, each utilizing their in game ID name.
+--
+-- for example:
+-- MANA_REDUCE, HEAVY_SHOT, HEAVY_SHOT, HEAVY_BULLET
+--
+-- this one creates 4 spell actions, one add mana(aka MANA_REDUCE),
+-- two heavy shots and one magic bolt (aka HEAVY_BULLET)
+--
+-- a more complicated format is:
+-- SPELL_ID1, SPELL_ID2, 2, 2, 3, 1;
+--
+-- [SPELL_ID3]: 1, [SPELL_ID4]: 2, [SPELL_ID5]: 3
+--
+-- we now have two sections, separated by a semicolon ";". first section are the spell ids / spell action alias groups
+--
+-- the second section denotes any spell action alias groups, so here we aliased "SPELL_ID3" as 1, "SPELL_ID4" as 2,
+-- and "SPELL_ID5" as 3.
+--
+--
+-- for example:
+-- MANA_REDUCE, MANA_REDUCE, HEAVY_SHOT, HEAVY_SHOT, HEAVY_SHOT, HEAVY_SHOT, HEAVY_SHOT, HEAVY_BULLET
+--
+-- the above can be shortened into:
+--
+-- 1, 1, 2, 2, 2, 2, 2, HEAVY_BULLET;
+--
+-- [MANA_REDUCE]: 1, [HEAVY_SHOT]: 2
+--
+--
+-- Sometimes your spell actions will repeat a bunch of times, and it's very annoying to type them all out, you can
+-- instead create alias groups with multiple spell actions:
+--
+-- for example, this can be shortened into:
+-- HEAVY_SHOT, HEAVY_BULLET, HEAVY_SHOT, HEAVY_BULLET, HEAVY_SHOT, HEAVY_BULLET, HEAVY_SHOT, HEAVY_BULLET
+--
+-- 1, 1, 1, 1;
+-- [HEAVY_SHOT, HEAVY_BULLET]: 1
+--
+-- you can put 1 or more spell actions within the square brackets "[]", separated between ","
+--
+-- Additional note: spaces and newlines are not necessary / mandatory, you can omit them entirely :)
+-- ```
+
+function M.parse_to_action_ids(raw_str)
     local action_ids = {}
 
     -- remove ALL whitespace
@@ -81,7 +64,7 @@ function cx_parse_wndbx_fmt_to_action_ids(raw_str)
     local alias_section_str = sections[2] -- may be nil
 
     -- index → {spell1, spell2, ...}
-    local action_alias_map = {}
+    local action_group_aliases = {}
 
     -- ONLY parse alias if it exists
     if alias_section_str and alias_section_str ~= "" then
@@ -89,12 +72,12 @@ function cx_parse_wndbx_fmt_to_action_ids(raw_str)
             local idx = tonumber(index)
 
             -- initialize list if not existing
-            if not action_alias_map[idx] then
-                action_alias_map[idx] = {}
+            if not action_group_aliases[idx] then
+                action_group_aliases[idx] = {}
             end
 
             for spell in string.gmatch(group, "([^,]+)") do
-                table.insert(action_alias_map[idx], spell)
+                table.insert(action_group_aliases[idx], spell)
             end
         end
     end
@@ -104,11 +87,11 @@ function cx_parse_wndbx_fmt_to_action_ids(raw_str)
         local num = tonumber(token)
 
         if num then
-            local resolved_group = action_alias_map[num]
+            local alias_group = action_group_aliases[num]
 
-            if resolved_group then
+            if alias_group then
                 -- expand grouped alias
-                for _, spell in ipairs(resolved_group) do
+                for _, spell in ipairs(alias_group) do
                     table.insert(action_ids, spell)
                 end
             else
@@ -122,3 +105,5 @@ function cx_parse_wndbx_fmt_to_action_ids(raw_str)
 
     return action_ids
 end
+
+return M

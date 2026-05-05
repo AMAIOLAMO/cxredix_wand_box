@@ -1,4 +1,4 @@
-require("core.cx_action_parse_utils")
+local cx_parser = require("core.cx_action_parse_utils")
 
 local success_count = 0
 local total_count = 0
@@ -35,50 +35,50 @@ end
 
 assert_actions_ids_equal(
     "assert empty",
-    cx_parse_wndbx_fmt_to_action_ids([[]]), {}
+    cx_parser.parse_to_action_ids([[]]), {}
 )
 
 
 assert_actions_ids_equal(
     "assert one action",
-    cx_parse_wndbx_fmt_to_action_ids([[A]]), {"A"}
+    cx_parser.parse_to_action_ids([[A]]), {"A"}
 )
 
 
 assert_actions_ids_equal(
     "assert many actions, simple format",
-    cx_parse_wndbx_fmt_to_action_ids([[A, B, C, G, E, A, A, C, B]]),
+    cx_parser.parse_to_action_ids([[A, B, C, G, E, A, A, C, B]]),
     { "A", "B", "C", "G", "E", "A", "A", "C", "B" }
 )
 
 
 assert_actions_ids_equal(
     "assert naming conventions",
-    cx_parse_wndbx_fmt_to_action_ids([[AbCd_123_efg, ___123_ABC, ABC]]),
+    cx_parser.parse_to_action_ids([[AbCd_123_efg, ___123_ABC, ABC]]),
     {"AbCd_123_efg", "___123_ABC", "ABC"}
 )
 
 assert_actions_ids_equal(
     "assert longer names",
-    cx_parse_wndbx_fmt_to_action_ids([[ABC,GEF, GGGG, GE123_2]]),
+    cx_parser.parse_to_action_ids([[ABC,GEF, GGGG, GE123_2]]),
     {"ABC", "GEF", "GGGG", "GE123_2"}
 )
 
 assert_actions_ids_equal(
     "assert inconsistent spacing",
-    cx_parse_wndbx_fmt_to_action_ids([[ABC,GEF,              GGGG,     GE123_2]]),
+    cx_parser.parse_to_action_ids([[ABC,GEF,              GGGG,     GE123_2]]),
     {"ABC", "GEF", "GGGG", "GE123_2"}
 )
 
 assert_actions_ids_equal(
     "assert no spacing",
-    cx_parse_wndbx_fmt_to_action_ids([[ABC,GEF,GGGG,GE123_2]]),
+    cx_parser.parse_to_action_ids([[ABC,GEF,GGGG,GE123_2]]),
     {"ABC", "GEF", "GGGG", "GE123_2"}
 )
 
 assert_actions_ids_equal(
     "assert new line as spacing",
-    cx_parse_wndbx_fmt_to_action_ids(
+    cx_parser.parse_to_action_ids(
         [[
             ABC
             ,GEF,
@@ -125,7 +125,7 @@ assert_actions_ids_equal(
 
 assert_actions_ids_equal(
     "assert simple alias group",
-    cx_parse_wndbx_fmt_to_action_ids(
+    cx_parser.parse_to_action_ids(
         [[
             A,2,C;
             [B]: 2
@@ -136,7 +136,7 @@ assert_actions_ids_equal(
 
 assert_actions_ids_equal(
     "assert alias group weird naming",
-    cx_parse_wndbx_fmt_to_action_ids(
+    cx_parser.parse_to_action_ids(
         [[
             A,2,C;
             [B_123_453894____]: 2
@@ -147,7 +147,7 @@ assert_actions_ids_equal(
 
 assert_actions_ids_equal(
     "assert multiple single alias group",
-    cx_parse_wndbx_fmt_to_action_ids(
+    cx_parser.parse_to_action_ids(
         [[
             A, 20, 20, 1, C, 20;
             [B__33123_]: 20, [G_2]: 1
@@ -158,7 +158,7 @@ assert_actions_ids_equal(
 
 assert_actions_ids_equal(
     "assert multi alias group and single alias group",
-    cx_parse_wndbx_fmt_to_action_ids(
+    cx_parser.parse_to_action_ids(
         [[
             A, 20, 20, 1, C, 20;
             [B, B, C, D]: 20, [G_2]: 1
@@ -169,7 +169,7 @@ assert_actions_ids_equal(
 
 assert_actions_ids_equal(
     "assert multi alias group",
-    cx_parse_wndbx_fmt_to_action_ids(
+    cx_parser.parse_to_action_ids(
         [[
             A, 20, 20, 1, C, 20;
             [B, B, C, D]: 20, [C, G]: 1

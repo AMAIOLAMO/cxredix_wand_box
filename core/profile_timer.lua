@@ -1,8 +1,9 @@
 dofile_once("data/scripts/lib/coroutines.lua")
 dofile_once("data/scripts/lib/utilities.lua")
 
-local ProfileTimer = {}
-ProfileTimer.__index = ProfileTimer
+--- @class ProfileTimer
+local M = {}
+M.__index = M
 
 -- Example usage:
 --
@@ -29,20 +30,20 @@ ProfileTimer.__index = ProfileTimer
 --
 -- print("it took a total of: " . tostring(my_timer.get_total_secs()) .. " seconds.")
 
-function ProfileTimer.new()
+function M.new()
     local obj = setmetatable(
         {rec_begin_time_secs = 0, total_rec_time_secs = 0},
-        ProfileTimer
+        M
     )
 
     return obj
 end
 
-function ProfileTimer:begin_append()
+function M:begin_append()
     self.rec_begin_time_secs = GameGetRealWorldTimeSinceStarted()
 end
 
-function ProfileTimer:end_append()
+function M:end_append()
     self.total_rec_time_secs = self.total_rec_time_secs + (
         GameGetRealWorldTimeSinceStarted() - self.rec_begin_time_secs
     )
@@ -50,13 +51,13 @@ function ProfileTimer:end_append()
     return self.total_rec_time_secs
 end
 
-function ProfileTimer:get_total_secs()
+function M:get_total_secs()
     return self.total_rec_time_secs
 end
 
-function ProfileTimer:clear()
+function M:clear()
     self.total_rec_time_secs = 0
     self.rec_begin_time_secs = 0
 end
 
-return ProfileTimer
+return M
