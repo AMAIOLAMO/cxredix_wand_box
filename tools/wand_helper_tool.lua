@@ -11,10 +11,14 @@ local player_utils = dofile_once(core_path .. "player_utils.lua")
 --- @module "core.logger"
 local logger = dofile_once(core_path .. "logger.lua")
 
+--- @class wand_helper_tool
 local M = {
     name = "Wand Helper",
     is_open = false
 }
+
+local should_clear_cast_delay = false
+local should_clear_recharge_time = false
 
 
 function M.render_window(imgui, wndbox_state)
@@ -56,30 +60,10 @@ function M.render_window(imgui, wndbox_state)
             )
         end
 
-        if imgui.Button("Clear Cast Delay") then
-            local ability_comp = EntityGetFirstComponentIncludingDisabled(
-                held_wand_id, "AbilityComponent"
-            )
-
-            local current_frame = GameGetFrameNum()
-
-            ComponentSetValue2(ability_comp, "mNextFrameUsable", current_frame)
-
-            logger.log_info("Cleared Cast Delay")
+        if imgui.CollapsingHeader("Clear Delays") then
+            M.show_delay_clearing(imgui, held_wand_id)
         end
 
-        if imgui.Button("Clear Recharge time") then
-            local ability_comp = EntityGetFirstComponentIncludingDisabled(
-                held_wand_id, "AbilityComponent"
-            )
-
-            local current_frame = GameGetFrameNum()
-
-            ComponentSetValue2(ability_comp, "mReloadFramesLeft", 0)
-            ComponentSetValue2(ability_comp, "mReloadNextFrameUsable", current_frame)
-
-            logger.log_info("Cleared reload time")
-        end
     else
         imgui.BulletText("No held wand found. Please let the target player hold a wand.")
     end
@@ -93,6 +77,38 @@ function M.render_window(imgui, wndbox_state)
             player_utils.get_player_id(wndbox_state.picked_player_idx)
         )
         logger.log_info("Refresh Complete")
+    end
+end
+
+function M.show_delay_clearing(imgui, held_wand_id)
+    local _
+    _, should_clear_cast_delay = imgui.Checkbox(
+        "Cast Delay", should_clear_cast_delay
+    )
+
+    _, should_clear_recharge_time = imgui.Checkbox(
+        "Recharge Time", should_clear_recharge_time
+    )
+
+    if imgui.Button("Clear Selected Delay(s)") then
+        local ability_comp = EntityGetFirstComponentIncludingDisabled(
+            held_wand_id, "AbilityComponent"
+        )
+
+        local current_frame = GameGetFrameNum()
+
+        if should_clear_cast_delay then
+            ComponentSetValue2(ability_comp, "mNextFrameUsable", current_frame)
+
+            logger.log_info("Cleared Cast Delay")
+        end
+
+        if should_clear_recharge_time then
+            ComponentSetValue2(ability_comp, "mReloadFramesLeft", 0)
+            ComponentSetValue2(ability_comp, "mReloadNextFrameUsable", current_frame)
+
+            logger.log_info("Cleared reload time")
+        end
     end
 end
 

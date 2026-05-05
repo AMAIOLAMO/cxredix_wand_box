@@ -132,7 +132,7 @@ function M.render_tab_for_player(imgui, _wndbx_state, player_id, loader_state)
     )
 
     -- rounding and shift by 1
-    sin_value = math.floor(sin_value + 0.5) + 1
+    sin_value = umath.round(sin_value)
 
     for i = 1, animated_char_count do
         if i == sin_value then
@@ -219,13 +219,11 @@ function M.render_tab_for_player(imgui, _wndbx_state, player_id, loader_state)
     local should_render_wand_timer = loader_state.prev_wand_load_time > 0
     local should_render_action_count = loader_state.prev_action_count > 0
 
-    local should_render_metrics = should_render_action_count or should_render_action_count
+    local has_metrics = should_render_action_count or should_render_action_count
 
-    if should_render_metrics then
-        imgui.Separator()
-
-        if imgui.TreeNode("Wand Load Metrics") then
-
+    if imgui.CollapsingHeader("Wand Load Metrics") then
+        if has_metrics then
+            
             -- Yes the if checks happens twice, but this is more structured :)
             if should_render_wand_timer then
                 imgui.Bullet()
@@ -246,7 +244,8 @@ function M.render_tab_for_player(imgui, _wndbx_state, player_id, loader_state)
                 )
             end
 
-            imgui.TreePop()
+        else
+            imgui.Text("Load a wand to see metrics :3")
         end
     end
 end

@@ -17,4 +17,9 @@ function M.clampi(v, min_val, max_val)
     return math.max(math.min(v, max_val), min_val)
 end
 
+-- rounds a value to it's nearest integer
+function M.round(v)
+    return math.floor(v + 0.5) + 1
+end
+
 return M
