@@ -64,6 +64,10 @@ function M.render_window(imgui, wndbox_state)
             M.show_delay_clearing(imgui, held_wand_id)
         end
 
+        if imgui.Button("Duplicate and Spawn Held wand at Player") then
+            logger.log_info("Not yet done! Coming soon :)")
+        end
+
     else
         imgui.BulletText("No held wand found. Please let the target player hold a wand.")
     end

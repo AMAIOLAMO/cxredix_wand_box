@@ -23,8 +23,9 @@ local umath = dofile_once(core_path .. "math_utils.lua")
 --- @module "core.logger"
 local logger = dofile_once(core_path .. "logger.lua")
 
+--- @class wand_modifier_tool
 local M = {
-    name = "Wand Stats",
+    name = "Wand Modifier",
     is_open = false
 }
 
@@ -34,6 +35,9 @@ local TIME_UNIT_OPTS = {
 }
 
 local time_unit_used = "frames"
+
+local wand_name_str = "WAND"
+local always_wand_name_in_ui = true
 
 local should_shuffle = false
 
@@ -48,9 +52,14 @@ local mana_chrg_spd_secs = 100
 local capacity = 26
 local spread_degrees = 0
 
-local picked_wand_idx = 1
+local proj_spd_multiplier = 1
 
-function M.update_wand_stats(wand_id)
+local should_limit_to_valid_values = true
+
+function M.update_wand_attributes(wand_id)
+    wand_utils.wand_set_name(wand_id, wand_name_str)
+    wand_utils.wand_set_always_use_item_name_in_ui(wand_id, always_wand_name_in_ui)
+
     wand_utils.wand_set_deck_cap(wand_id, capacity)
 
     wand_utils.wand_set_mana_max(wand_id, mana_max)
@@ -63,6 +72,8 @@ function M.update_wand_stats(wand_id)
 
     wand_utils.wand_set_spells_per_cast(wand_id, spells_per_cast)
     wand_utils.wand_set_should_shuffle(wand_id, should_shuffle)
+
+    wand_utils.wand_set_projectile_speed_multiplier(wand_id, proj_spd_multiplier)
 end
 
 
@@ -76,8 +87,9 @@ function M.render_window(imgui, wndbx_state)
     -- )
 
     -- TODO: link this with the wand picker above
+    local picked_player_id = player_utils.get_first_player_id()
     local picked_wand_id = wand_utils.get_held_wand_id(
-        player_utils.get_first_player_id()
+        picked_player_id
     )
 
 
@@ -115,6 +127,25 @@ function M.render_window(imgui, wndbx_state)
         return math.floor(frames_frac)
     end
 
+    local should_limit_to_valid_values_changed
+    should_limit_to_valid_values_changed, should_limit_to_valid_values = imgui.Checkbox(
+        "Limit Values in Valid Range", should_limit_to_valid_values
+    )
+
+    if imgui.CollapsingHeader("UI & HUD") then
+        local _
+
+        _, wand_name_str = imgui.InputText(
+            "Wand Name", wand_name_str
+        )
+
+        _, always_wand_name_in_ui = imgui.Checkbox(
+            "Always show wand name in UI", always_wand_name_in_ui
+        )
+
+    end
+
+    
     if imgui.CollapsingHeader("Delays") then
 
         if time_unit_used == "frames" then
@@ -150,11 +181,13 @@ function M.render_window(imgui, wndbx_state)
             "Max Mana", mana_max
         )
 
+
         if time_unit_used == "in game seconds" then
             local mana_chrg_spd_secs_changed
             mana_chrg_spd_secs_changed, mana_chrg_spd_secs = imgui.InputInt(
                 "Mana Charge Speed(Mana / Second)", mana_chrg_spd_secs
             )
+
         elseif time_unit_used == "frames" then
             local mana_chrg_spd_secs_changed, mana_chrg_spd_frame = imgui.InputInt(
                 "Mana Charge Speed(Mana / Frame)",
@@ -163,6 +196,7 @@ function M.render_window(imgui, wndbx_state)
 
             mana_chrg_spd_secs = frames_to_secs(mana_chrg_spd_frame)
         end
+
     end
 
     if imgui.CollapsingHeader("Spells") then
@@ -180,9 +214,6 @@ function M.render_window(imgui, wndbx_state)
         capacity_changed, capacity = imgui.InputInt(
             "Capacity", capacity
         )
-        -- TODO: make it a checkbox option to force clamping
-        capacity = math.max(capacity, 0)
-
 
         local spread_degrees_changed
         -- TODO: allow radians :)
@@ -190,25 +221,46 @@ function M.render_window(imgui, wndbx_state)
         spread_degrees_changed, spread_degrees = imgui.InputFloat(
             "Spread(degrees)", spread_degrees
         )
+
+        local proj_spd_multiplier_changed
+        proj_spd_multiplier_changed, proj_spd_multiplier = imgui.InputFloat(
+            "Projectile Speed Multiplier", proj_spd_multiplier
+        )
+    end
+
+
+    -- limit to valid ranges
+    if should_limit_to_valid_values then
+        mana_max = math.max(mana_max, 0)
+        mana_chrg_spd_secs = math.max(mana_chrg_spd_secs, 0)
+
+        capacity = math.max(capacity, 1)
+        spells_per_cast = math.max(spells_per_cast, 0)
     end
 
 
 
 
 
-    -- Application of stats
-    if imgui.Button("Copy wand stats") then
+    -- Application of attributes
+    if imgui.Button("Copy wand attributes") then
         logger.log_info("Not yet done! Coming soon :)")
     end
 
     imgui.SameLine()
     if imgui.Button("Update on Wand") then
-        M.update_wand_stats(picked_wand_id)
-        logger.log_info("picked wand updated")
+        M.update_wand_attributes(picked_wand_id)
+        logger.log_info("updated picked wand")
+
+        wand_utils.force_refresh_all_wands_on_player(picked_player_id)
+        logger.log_info("refreshed wands for player")
     end
 
     imgui.SameLine()
     if imgui.Button("Spawn Wand at Player") then
+        local x, y = EntityGetTransform(picked_player_id)
+
+        wand_utils.spawn_default_wand_at(x, y)
         logger.log_info("Not yet done! Coming soon :)")
     end
 

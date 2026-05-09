@@ -165,58 +165,15 @@ function M.held_wand_deck_direct_sync(player_id, actions_str)
 
     M.force_refresh_all_wands_on_player(player_id)
 end
---
--- local WAND_STAT_SETTERS = {
--- 	shuffle_deck_when_empty = WAND_STAT_SETTER.Gun,
--- 	actions_per_round = WAND_STAT_SETTER.Gun,
--- 	speed_multiplier = WAND_STAT_SETTER.GunAction,
--- 	-- deck_capacity = WAND_STAT_SETTER.Gun,
--- 	reload_time = WAND_STAT_SETTER.Gun,
--- 	fire_rate_wait = WAND_STAT_SETTER.GunAction,
--- 	spread_degrees = WAND_STAT_SETTER.GunAction,
--- 	mana_charge_speed = WAND_STAT_SETTER.Direct,
--- 	mana_max = WAND_STAT_SETTER.Direct,
--- 	mana = WAND_STAT_SETTER.Direct,
--- }
---
 
--- local setter = WAND_STAT_SETTERS[stat]
--- if setter ~= nil then
---     if setter == WAND_STAT_SETTER.Direct then
---         ComponentSetValue2( ability, stat, value )
---     elseif setter == WAND_STAT_SETTER.Gun then
---         ComponentObjectSetValue2( ability, "gun_config", stat, value )
---     elseif setter == WAND_STAT_SETTER.GunAction then
---         ComponentObjectSetValue2( ability, "gunaction_config", stat, value )
---     end
--- end
---function WANDS.wand_get_stat( wand, stat )
--- 	local ability = EntityGetFirstComponentIncludingDisabled( wand, "AbilityComponent" )
--- 	if ability then
--- 		if stat == "deck_capacity" then
--- 			return ComponentObjectGetValue2( ability, "gun_config", "deck_capacity" )
--- 		elseif stat == "capacity" then
--- 			return EntityGetWandCapacity( wand )
--- 		else
--- 			return WANDS.ability_component_get_stat( ability, stat )
--- 		end
--- 	end
--- end
---
--- function WANDS.wand_set_stat( wand, stat, value )
--- 	local ability = EntityGetFirstComponentIncludingDisabled( wand, "AbilityComponent" )
--- 	if ability then
--- 		if stat == "deck_capacity" then
--- 			ComponentObjectSetValue2( ability, "gun_config", "deck_capacity", value )
--- 		elseif stat == "capacity" then
--- 			ComponentObjectSetValue2( ability, "gun_config", "deck_capacity", value + WANDS.wand_get_num_actions_permanent( wand ) )
--- 		else
--- 			WANDS.ability_component_set_stat( ability, stat, value )
--- 		end
--- 	end
--- end
+function M.spawn_default_wand_at(x, y)
+    local wand_id = EntityLoad(root_path .. "vendor/entities/default_wand.xml", x, y)
 
-function M.wand_get_ability_comp_asserted(wand_id)
+    return wand_id
+end
+
+-- wand ability component -- 
+function M.wand_get_ability_asserted(wand_id)
     local comp = EntityGetFirstComponentIncludingDisabled(wand_id, "AbilityComponent")
     assert(
         comp ~= nil,
@@ -226,35 +183,67 @@ function M.wand_get_ability_comp_asserted(wand_id)
 end
 
 function M.wand_ability_set_field_asserted(wand_id, field_name, value)
-    local comp = M.wand_get_ability_comp_asserted(wand_id)
+    local comp = M.wand_get_ability_asserted(wand_id)
 
     ComponentSetValue2(comp, field_name, value)
 end
 
 function M.wand_ability_gun_action_cfg_set_field_asserted(wand_id, field_name, value)
-    local comp = M.wand_get_ability_comp_asserted(wand_id)
+    local comp = M.wand_get_ability_asserted(wand_id)
 
     ComponentObjectSetValue2(comp, "gunaction_config", field_name, value)
 end
 
 function M.wand_ability_gun_cfg_set_field_asserted(wand_id, field_name, value)
-    local comp = M.wand_get_ability_comp_asserted(wand_id)
+    local comp = M.wand_get_ability_asserted(wand_id)
 
     ComponentObjectSetValue2(comp, "gun_config", field_name, value)
 end
 
 
+-- item component --
+
+function M.wand_get_item(wand_id)
+    return EntityGetFirstComponentIncludingDisabled(wand_id, "ItemComponent")
+end
+
+function M.wand_get_item_asserted(wand_id)
+    local comp = M.wand_get_item(wand_id)
+    assert(
+        comp ~= nil,
+        "Cannot find item component on the given wand entity: " .. tostring(wand_id)
+    )
+    return comp
+end
+
+function M.wand_item_set_field_asserted(wand_id, field, value)
+    local comp = M.wand_get_item_asserted(wand_id)
+
+    SetComponentValue2(comp, field, value)
+end
+
+
+-- wand attributes --
+function M.wand_set_name(wand_id, value)
+    local ability_comp = M.wand_get_ability_asserted(wand_id)
+    local item_comp = M.wand_get_item_asserted(wand_id)
+
+    ComponentSetValue2(ability_comp, "ui_name", value)
+    ComponentSetValue2(item_comp, "item_name", value)
+end
+
+function M.wand_set_always_use_item_name_in_ui(wand_id, value)
+    local item_comp = M.wand_get_item_asserted(wand_id)
+    ComponentSetValue2(item_comp, "always_use_item_name_in_ui", value)
+end
+
 function M.wand_set_deck_cap(wand_id, value)
     M.wand_ability_gun_cfg_set_field_asserted(wand_id, "deck_capacity", value)
-    -- local ability = M.wand_get_ability_comp_asserted(wand_id)
-    --
-    -- ComponentObjectSetValue2(ability, "gun_config", "deck_capacity", value)
 end
 
 function M.wand_set_mana_max(wand_id, value)
     M.wand_ability_set_field_asserted(wand_id, "mana_max", value)
 end
-
 
 function M.wand_set_mana_charge_speed(wand_id, value)
     M.wand_ability_set_field_asserted(wand_id, "mana_charge_speed", value)
@@ -282,6 +271,16 @@ end
 
 function M.wand_set_should_shuffle(wand_id, value)
     M.wand_ability_gun_cfg_set_field_asserted(wand_id, "shuffle_deck_when_empty", value)
+end
+
+
+function M.wand_set_should_shuffle(wand_id, value)
+    M.wand_ability_gun_cfg_set_field_asserted(wand_id, "shuffle_deck_when_empty", value)
+end
+
+
+function M.wand_set_projectile_speed_multiplier(wand_id, value)
+    M.wand_ability_gun_action_cfg_set_field_asserted(wand_id, "speed_multiplier", value)
 end
 
 return M

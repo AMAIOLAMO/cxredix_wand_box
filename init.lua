@@ -14,8 +14,8 @@ local wand_helper_tool = dofile_once(tools_path .. "wand_helper_tool.lua")
 --- @module "tools.wand_loader_tool"
 local wand_loader_tool = dofile_once(tools_path .. "wand_loader_tool.lua")
 
---- @module "tools.wand_loader_tool"
-local wand_stats_tool = dofile_once(tools_path .. "wand_stats_tool.lua")
+--- @module "tools.wand_modifier_tool"
+local wand_stats_tool = dofile_once(tools_path .. "wand_modifier_tool.lua")
 
 --- @module "core.logger"
 local logger = dofile_once(core_path .. "logger.lua")
