@@ -122,7 +122,7 @@ function M.wand_create_action_id_at(wand_id, action_id, idx)
     EntitySetComponentsWithTagEnabled(action_entity, "enabled_in_world", false)
 end
 
-function M.wand_append_action_str(wand_id, raw_str)
+function M.wand_append_action_str(wand_id, raw_str, adapt_deck_size)
     local action_ids = cx_parser.parse_to_action_ids(raw_str)
 
     for idx, action_id in ipairs(action_ids) do
@@ -139,7 +139,10 @@ function M.wand_append_action_str(wand_id, raw_str)
         ::continue::
     end
 
-    M.wand_set_deck_cap(wand_id, #action_ids)
+    if adapt_deck_size then
+        M.wand_set_deck_cap(wand_id, #action_ids)
+    end
+
     return #action_ids
 end
 
@@ -159,7 +162,7 @@ function M.held_wand_deck_direct_sync(player_id, actions_str)
     -- as entities in the game, refreshing the wand will not happen.
 
     M.wand_clear_all_actions(held_wand_id)
-    M.wand_append_action_str(held_wand_id, "MANA_REDUCE")
+    M.wand_append_action_str(held_wand_id, "MANA_REDUCE", true)
 
     cx_deck_sync.set_sync_actions(actions_str)
 
@@ -277,7 +280,6 @@ end
 function M.wand_set_should_shuffle(wand_id, value)
     M.wand_ability_gun_cfg_set_field_asserted(wand_id, "shuffle_deck_when_empty", value)
 end
-
 
 function M.wand_set_projectile_speed_multiplier(wand_id, value)
     M.wand_ability_gun_action_cfg_set_field_asserted(wand_id, "speed_multiplier", value)

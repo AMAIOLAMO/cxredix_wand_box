@@ -123,7 +123,7 @@ function M.on_world_post_update(dt_secs, wndbx_state)
     end
 end
 
-function M.render_tab_for_player(imgui, _wndbx_state, player_id, loader_state)
+function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
     local animated_str = ""
     local animated_char_count = 45
 
@@ -181,7 +181,13 @@ function M.render_tab_for_player(imgui, _wndbx_state, player_id, loader_state)
     --     end
     -- end
 
+
     if loader_state.actions_str ~= '' then
+        local _
+        _, loader_state.adapt_deck_size = imgui.Checkbox(
+            "Auto Adapt Deck Size", loader_state.adapt_deck_size
+        )
+
         if imgui.Button("Direct sync to wand") then
             M.begin_wand_direct_sync(
                 player_id, loader_state.actions_str, loader_state
@@ -197,7 +203,8 @@ function M.render_tab_for_player(imgui, _wndbx_state, player_id, loader_state)
         imgui.SameLine()
         if imgui.Button("Load on held wand") then
             M.begin_held_wand_load(
-                player_id, loader_state.actions_str, loader_state
+                player_id,
+                loader_state.actions_str, loader_state, loader_state.adapt_deck_size
             )
 
             -- sync to other players as well :)
@@ -223,7 +230,7 @@ function M.render_tab_for_player(imgui, _wndbx_state, player_id, loader_state)
 
     if imgui.CollapsingHeader("Wand Load Metrics") then
         if has_metrics then
-            
+
             -- Yes the if checks happens twice, but this is more structured :)
             if should_render_wand_timer then
                 imgui.Bullet()
@@ -261,7 +268,8 @@ function M.render_window(imgui, wndbx_state)
                 player_loader_states[player_id] = {
                     actions_str = "",
                     prev_action_count = -1,
-                    prev_wand_load_time = -1
+                    prev_wand_load_time = -1,
+                    adapt_deck_size = true
                 }
             end
 
@@ -305,7 +313,7 @@ function M.begin_wand_direct_sync(player_id, actions_str, loader_state)
     end
 end
 
-function M.begin_held_wand_load(player_id, action_str, loader_state)
+function M.begin_held_wand_load(player_id, action_str, loader_state, adapt_deck_size)
     local held_wand = wand_utils.get_held_wand_id(player_id)
 
     if held_wand ~= nil then
@@ -316,7 +324,9 @@ function M.begin_held_wand_load(player_id, action_str, loader_state)
 
         wand_utils.wand_clear_all_actions(held_wand)
 
-        loader_state.prev_action_count = wand_utils.wand_append_action_str(held_wand, action_str)
+        loader_state.prev_action_count = wand_utils.wand_append_action_str(
+            held_wand, action_str, adapt_deck_size
+        )
 
         wand_utils.force_refresh_all_wands_on_player(player_id)
 
