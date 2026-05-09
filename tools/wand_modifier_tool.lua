@@ -260,8 +260,11 @@ function M.render_window(imgui, wndbx_state)
     if imgui.Button("Spawn Wand at Player") then
         local x, y = EntityGetTransform(picked_player_id)
 
-        wand_utils.spawn_default_wand_at(x, y)
-        logger.log_info("Not yet done! Coming soon :)")
+        local wand_id = wand_utils.spawn_default_wand_at(x, y)
+        logger.log_info("Wand Spawned at player")
+
+        M.update_wand_attributes(wand_id)
+        logger.log_info("Wand attributes updated")
     end
 
 
