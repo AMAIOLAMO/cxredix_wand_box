@@ -11,6 +11,9 @@ local player_utils = dofile_once(core_path .. "player_utils.lua")
 --- @module "core.logger"
 local logger = dofile_once(core_path .. "logger.lua")
 
+--- @module "core.wand_attributes"
+local WandAttribs = dofile_once(core_path .. "wand_attributes.lua")
+
 --- @class wand_helper_tool
 local M = {
     name = "Wand Helper",
@@ -19,6 +22,7 @@ local M = {
 
 local should_clear_cast_delay = false
 local should_clear_recharge_time = false
+local should_dupe_actions = true
 
 
 function M.render_window(imgui, wndbox_state)
@@ -64,8 +68,42 @@ function M.render_window(imgui, wndbox_state)
             M.show_delay_clearing(imgui, held_wand_id)
         end
 
-        if imgui.Button("Duplicate and Spawn Held wand at Player") then
-            logger.log_info("Not yet done! Coming soon :)")
+
+        if imgui.CollapsingHeader("Wand Duplication") then
+
+            local _
+            _, should_dupe_actions = imgui.Checkbox(
+                "Should Dupe Actions", should_dupe_actions
+            )
+
+            if imgui.Button("Duplicate and Spawn Held wand at Player") then
+                local wnd_attribs = WandAttribs.from_wand_entity(held_wand_id)
+
+                local player_id = player_utils.get_first_player_id()
+
+                if player_id == nil then
+                    logger.log_info("Cannot spawn, Reason: cannot find player")
+                else
+                    local x, y = EntityGetTransform(player_id)
+
+                    local wand_id = wand_utils.spawn_default_wand_at(x, y)
+                    logger.log_info("Wand Spawned at player")
+
+                    wnd_attribs:apply_to(wand_id)
+                    logger.log_info("Wand attributes applied")
+
+                    if should_dupe_actions then
+                        local action_ids = wand_utils.wand_get_all_action_ids(
+                            held_wand_id
+                        )
+
+                        -- NOTE: its possible that there are less slots than there are actions
+                        -- we ignore them for now since the cap is set above.
+                        wand_utils.wand_append_action_ids(wand_id, action_ids, false)
+                    end
+                end
+            end
+
         end
 
     else

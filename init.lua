@@ -14,8 +14,8 @@ local wand_helper_tool = dofile_once(tools_path .. "wand_helper_tool.lua")
 --- @module "tools.wand_loader_tool"
 local wand_loader_tool = dofile_once(tools_path .. "wand_loader_tool.lua")
 
---- @module "tools.wand_modifier_tool"
-local wand_stats_tool = dofile_once(tools_path .. "wand_modifier_tool.lua")
+--- @module "tools.wand_tinker_tool"
+local wand_tinker_tool = dofile_once(tools_path .. "wand_tinker_tool.lua")
 
 --- @module "core.logger"
 local logger = dofile_once(core_path .. "logger.lua")
@@ -30,7 +30,7 @@ if ModIsEnabled("quant.ew") then
 end
 
 local tools = {
-    wand_helper_tool, wand_loader_tool, wand_stats_tool
+    wand_helper_tool, wand_loader_tool, wand_tinker_tool
 }
 
 

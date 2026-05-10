@@ -4,10 +4,10 @@ dofile_once("data/scripts/lib/utilities.lua")
 local root_path = "mods/cxredix_wand_box/"
 local core_path = root_path .. "core/"
 
---- @module 'cx_action_parse_utils'
+--- @module 'core.cx_action_parse_utils'
 local cx_parser = dofile_once(core_path .. "cx_action_parse_utils.lua")
 
---- @module 'cx_deck_sync'
+--- @module 'core.cx_deck_sync'
 local cx_deck_sync = dofile_once(core_path .. "cx_deck_sync.lua")
 
 --- @class wand_utils
@@ -122,9 +122,7 @@ function M.wand_create_action_id_at(wand_id, action_id, idx)
     EntitySetComponentsWithTagEnabled(action_entity, "enabled_in_world", false)
 end
 
-function M.wand_append_action_str(wand_id, raw_str, adapt_deck_size)
-    local action_ids = cx_parser.parse_to_action_ids(raw_str)
-
+function M.wand_append_action_ids(wand_id, action_ids, adapt_deck_size)
     for idx, action_id in ipairs(action_ids) do
         if action_id == nil or action_id == '' then
             goto continue
@@ -144,6 +142,32 @@ function M.wand_append_action_str(wand_id, raw_str, adapt_deck_size)
     end
 
     return #action_ids
+end
+
+function M.wand_append_action_str(wand_id, raw_str, adapt_deck_size)
+    local action_ids = cx_parser.parse_to_action_ids(raw_str)
+
+    return M.wand_append_action_ids(wand_id, action_ids, adapt_deck_size)
+
+    -- for idx, action_id in ipairs(action_ids) do
+    --     if action_id == nil or action_id == '' then
+    --         goto continue
+    --     end
+    --
+    --     M.wand_create_action_id_at(wand_id, action_id, idx)
+    --
+    --     -- This does not work, tha game seems to load the particle emitter differently.
+    --     -- local particle_emitter = EntityGetFirstComponentIncludingDisabled(action_entity, "ParticleEmitterComponent")
+    --     -- EntityRemoveComponent(action_entity, particle_emitter)
+    --
+    --     ::continue::
+    -- end
+    --
+    -- if adapt_deck_size then
+    --     M.wand_set_deck_cap(wand_id, #action_ids)
+    -- end
+    --
+    -- return #action_ids
 end
 
 function M.wand_has_action(wand_id)
@@ -191,16 +215,36 @@ function M.wand_ability_set_field_asserted(wand_id, field_name, value)
     ComponentSetValue2(comp, field_name, value)
 end
 
+function M.wand_ability_get_field_asserted(wand_id, field_name)
+    local comp = M.wand_get_ability_asserted(wand_id)
+
+    return ComponentGetValue2(comp, field_name)
+end
+
+-- gun action config
 function M.wand_ability_gun_action_cfg_set_field_asserted(wand_id, field_name, value)
     local comp = M.wand_get_ability_asserted(wand_id)
 
     ComponentObjectSetValue2(comp, "gunaction_config", field_name, value)
 end
 
+function M.wand_ability_gun_action_cfg_get_field_asserted(wand_id, field_name)
+    local comp = M.wand_get_ability_asserted(wand_id)
+
+    return ComponentObjectGetValue2(comp, "gunaction_config", field_name)
+end
+
+-- gun config
 function M.wand_ability_gun_cfg_set_field_asserted(wand_id, field_name, value)
     local comp = M.wand_get_ability_asserted(wand_id)
 
     ComponentObjectSetValue2(comp, "gun_config", field_name, value)
+end
+
+function M.wand_ability_gun_cfg_get_field_asserted(wand_id, field_name)
+    local comp = M.wand_get_ability_asserted(wand_id)
+
+    return ComponentObjectGetValue2(comp, "gun_config", field_name)
 end
 
 
@@ -222,7 +266,13 @@ end
 function M.wand_item_set_field_asserted(wand_id, field, value)
     local comp = M.wand_get_item_asserted(wand_id)
 
-    SetComponentValue2(comp, field, value)
+    ComponentSetValue2(comp, field, value)
+end
+
+function M.wand_item_get_field_asserted(wand_id, field)
+    local comp = M.wand_get_item_asserted(wand_id)
+
+    return ComponentGetValue2(comp, field)
 end
 
 
@@ -236,8 +286,7 @@ function M.wand_set_name(wand_id, value)
 end
 
 function M.wand_set_always_use_item_name_in_ui(wand_id, value)
-    local item_comp = M.wand_get_item_asserted(wand_id)
-    ComponentSetValue2(item_comp, "always_use_item_name_in_ui", value)
+    M.wand_item_set_field_asserted(wand_id, "always_use_item_name_in_ui", value)
 end
 
 function M.wand_set_deck_cap(wand_id, value)
@@ -276,13 +325,58 @@ function M.wand_set_should_shuffle(wand_id, value)
     M.wand_ability_gun_cfg_set_field_asserted(wand_id, "shuffle_deck_when_empty", value)
 end
 
-
-function M.wand_set_should_shuffle(wand_id, value)
-    M.wand_ability_gun_cfg_set_field_asserted(wand_id, "shuffle_deck_when_empty", value)
-end
-
 function M.wand_set_projectile_speed_multiplier(wand_id, value)
     M.wand_ability_gun_action_cfg_set_field_asserted(wand_id, "speed_multiplier", value)
+end
+
+
+
+function M.wand_get_deck_cap(wand_id)
+    return M.wand_ability_gun_cfg_get_field_asserted(wand_id, "deck_capacity")
+end
+
+function M.wand_get_mana_max(wand_id)
+    return M.wand_ability_get_field_asserted(wand_id, "mana_max")
+end
+
+function M.wand_get_mana_charge_speed(wand_id)
+    return M.wand_ability_get_field_asserted(wand_id, "mana_charge_speed")
+end
+
+function M.wand_get_name(wand_id)
+    return M.wand_item_get_field_asserted(wand_id, "item_name")
+end
+
+function M.wand_get_always_use_item_name_in_ui(wand_id)
+    return M.wand_item_get_field_asserted(wand_id, "always_use_item_name_in_ui")
+end
+
+function M.wand_get_mana(wand_id)
+    return M.wand_ability_get_field_asserted(wand_id, "mana")
+end
+
+function M.wand_get_cast_delay_frames(wand_id)
+    return M.wand_ability_gun_action_cfg_get_field_asserted(wand_id, "fire_rate_wait")
+end
+
+function M.wand_get_recharge_time_frames(wand_id)
+    return M.wand_ability_gun_cfg_get_field_asserted(wand_id, "reload_time")
+end
+
+function M.wand_get_spread_degrees(wand_id)
+    return M.wand_ability_gun_action_cfg_get_field_asserted(wand_id, "spread_degrees")
+end
+
+function M.wand_get_spells_per_cast(wand_id)
+    return M.wand_ability_gun_cfg_get_field_asserted(wand_id, "actions_per_round")
+end
+
+function M.wand_get_should_shuffle(wand_id)
+    return M.wand_ability_gun_cfg_get_field_asserted(wand_id, "shuffle_deck_when_empty")
+end
+
+function M.wand_get_projectile_speed_multiplier(wand_id)
+    return M.wand_ability_gun_action_cfg_get_field_asserted(wand_id, "speed_multiplier")
 end
 
 return M
