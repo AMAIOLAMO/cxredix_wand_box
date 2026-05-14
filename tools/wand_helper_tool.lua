@@ -50,7 +50,7 @@ function M.render_window(imgui, wndbox_state)
             wand_utils.wand_clear_all_actions(held_wand_id)
         end
 
-        if imgui.Button("Copy wand str") then
+        if imgui.Button("Copy wand actions str") then
             logger.log_info("found player and held wand")
 
             local actions_str = wand_utils.wand_get_all_actions_as_actions_str(

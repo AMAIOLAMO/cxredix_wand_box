@@ -39,6 +39,10 @@ local should_limit_to_valid_values = true
 
 
 function M.render_window(imgui, wndbx_state)
+    imgui.Text(
+        "Warning: May not support multiplayer reliably yet :)"
+    )
+
     -- local wand_picked_changed, picked_wand_idx = imgui.InputInt(
     --     "##PickedWandIdx", picked_wand_idx
     -- )
@@ -63,6 +67,8 @@ function M.render_window(imgui, wndbx_state)
         imgui.BulletText("Is the player currently holding a wand?")
         return
     end
+
+    imgui.Separator()
 
     imgui.BulletText(
         string.format("Applies on held wand of id: %d", picked_wand_id)

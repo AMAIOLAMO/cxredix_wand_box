@@ -51,7 +51,6 @@ end
 if load_imgui ~= nil then
     local imgui = load_imgui({version="1.21.0", mod="CxRedixWandBox"})
 
-
     -- allow for multi player selection & multi wand selection
     local wndbx_state = {
         picked_player_idx = 1
