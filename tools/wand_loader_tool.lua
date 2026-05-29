@@ -23,6 +23,9 @@ local umath = dofile_once(core_path .. "math_utils.lua")
 --- @module "core.logger"
 local logger = dofile_once(core_path .. "logger.lua")
 
+--- @module "core.wand_storage_box"
+local WandStorageBox = dofile_once(core_path .. "wand_storage_box.lua")
+
 local M = {
     name = "Wand Loader",
     is_open = true
@@ -35,6 +38,10 @@ local load_wand_player_id = -1
 local player_pick_marker_id = nil
 local player_pick_marker_sprite_id = nil
 local picked_player_marker_fade_wait_timer = 0
+
+local wand_storage_box = nil
+local storage_box_save_name = "MyCoolWand"
+local storage_box_save_category = "Any"
 
 local function imgui_cautious_btn(imgui, id)
     imgui.PushStyleColor(imgui.Col.Button, 0.8, 0.45, 0.45)
@@ -50,6 +57,8 @@ end
 
 
 function M.on_world_init()
+    wand_storage_box = WandStorageBox.load_from_globals("cx_wndbx_storage_box")
+
     player_pick_marker_id = EntityLoad(root_path .. "vendor/entities/player_marker.xml")
 
     player_pick_marker_sprite_id = EntityGetFirstComponentIncludingDisabled(
@@ -188,36 +197,59 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
             "Auto Adapt Deck Size", loader_state.adapt_deck_size
         )
 
-        if imgui.Button("Direct sync to wand") then
-            M.begin_wand_direct_sync(
-                player_id, loader_state.actions_str, loader_state
-            )
+        if imgui.CollapsingHeader("Wand Loading") then
 
-            if ModIsEnabled("quant.ew") then
-                logger.log_info("Found Entangled Worlds, syncing wand to peers...")
-                -- this should call ONLY on peers, does not include the caller
-                CrossCall("cx_wndbx_current_player_sync_actions", loader_state.actions_str)
+            if imgui.Button("Direct sync to wand") then
+                M.begin_wand_direct_sync(
+                    player_id, loader_state.actions_str, loader_state
+                )
+
+                if ModIsEnabled("quant.ew") then
+                    logger.log_info("Found Entangled Worlds, syncing wand to peers...")
+                    -- this should call ONLY on peers, does not include the caller
+                    CrossCall("cx_wndbx_current_player_sync_actions", loader_state.actions_str)
+                end
+            end
+
+            imgui.SameLine()
+            if imgui.Button("Load on held wand") then
+                M.begin_held_wand_load(
+                    player_id,
+                    loader_state.actions_str, loader_state, loader_state.adapt_deck_size
+                )
+
+                -- sync to other players as well :)
+                if ModIsEnabled("quant.ew") then
+                    logger.log_info("Found Entangled Worlds, syncing wand to peers...")
+                    -- this should call ONLY on peers, does not include the caller
+                    CrossCall("cx_wndbx_current_player_sync_actions", loader_state.actions_str)
+                end
+            end
+
+            imgui.SameLine()
+            if imgui_cautious_btn(imgui, "Clear") then
+                loader_state.actions_str = ''
             end
         end
 
-        imgui.SameLine()
-        if imgui.Button("Load on held wand") then
-            M.begin_held_wand_load(
-                player_id,
-                loader_state.actions_str, loader_state, loader_state.adapt_deck_size
+        if imgui.CollapsingHeader("Storage Box") then
+            local _
+            _, storage_box_save_name = imgui.InputText(
+                "Save Name", storage_box_save_name
             )
 
-            -- sync to other players as well :)
-            if ModIsEnabled("quant.ew") then
-                logger.log_info("Found Entangled Worlds, syncing wand to peers...")
-                -- this should call ONLY on peers, does not include the caller
-                CrossCall("cx_wndbx_current_player_sync_actions", loader_state.actions_str)
-            end
-        end
+            _, storage_box_save_category = imgui.InputText(
+                "Save Category", storage_box_save_category
+            )
 
-        imgui.SameLine()
-        if imgui_cautious_btn(imgui, "Clear") then
-            loader_state.actions_str = ''
+            if imgui.Button("Save to Storage Box") then
+                wand_storage_box:set(
+                    storage_box_save_category, storage_box_save_name,
+                    loader_state.actions_str
+                )
+                logger.log_info("Save / Override complete")
+            end
+
         end
     end
 
@@ -278,6 +310,50 @@ function M.render_window(imgui, wndbx_state)
                     imgui, wndbx_state,
                     player_id, player_loader_states[player_id]
                 )
+
+                imgui.EndTabItem()
+            end
+
+            imgui.PopID()
+        end
+
+        imgui.EndTabBar()
+    end
+
+
+    imgui.Text("Wand Storage Box")
+
+    -- Render Storage Box
+    if imgui.BeginTabBar("Wand Storage Box") then
+        local storage_all = wand_storage_box:get_all()
+
+        for cat_key, cat in pairs(storage_all) do
+            imgui.PushID("##" .. cat_key)
+
+            if imgui.BeginTabItem(string.format("%s", cat_key)) then
+                for str_key, val in pairs(cat) do
+                    imgui.BulletText(str_key)
+                    imgui.SameLine()
+
+                    if imgui.Button("Load") then
+
+                    end
+
+                    imgui.SameLine()
+                    if imgui.Button("Delete") then
+                        wand_storage_box:remove(cat_key, str_key)
+                    end
+
+                    imgui.SameLine()
+                    if imgui.Button("Duplicate") then
+
+                    end
+
+                    imgui.SameLine()
+                    if imgui.Button("Move") then
+                    end
+                end
+
                 imgui.EndTabItem()
             end
 

@@ -39,6 +39,7 @@ function OnWorldInitialized()
     cx_deck_sync.consume_sync()
     cx_deck_sync.clear_sync_complete_flag()
 
+
     for _, tool in ipairs(tools) do
         if tool.on_world_init ~= nil then
             tool.on_world_init()
