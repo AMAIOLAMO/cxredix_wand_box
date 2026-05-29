@@ -50,16 +50,18 @@ local function imgui_cautious_btn(imgui, id)
     imgui.PushStyleColor(imgui.Col.ButtonHovered, 1, 0.6, 0.6)
     imgui.PushStyleColor(imgui.Col.ButtonActive, 0.7, 0.45, 0.45)
 
-    local ret_value = imgui.Button(id)
+    local ret_value = imgui.SmallButton(id)
 
     imgui.PopStyleColor(3)
 
     return ret_value
 end
 
+local wand_storage_box_globals_key = "cx_wndbx_storage_box"
+
 
 function M.on_world_init()
-    wand_storage_box = WandStorageBox.load_from_globals("cx_wndbx_storage_box")
+    wand_storage_box = WandStorageBox.load_from_globals(wand_storage_box_globals_key)
 
     player_pick_marker_id = EntityLoad(root_path .. "vendor/entities/player_marker.xml")
 
@@ -409,32 +411,46 @@ function M.render_wand_storage_box(imgui)
 
             if imgui.BeginTabItem(string.format("%s", cat_key)) then
                 for val_key, val in pairs(cat) do
+                    imgui.PushID("##" .. val_key)
+
                     imgui.BulletText(val_key)
                     imgui.SameLine()
 
-                    if imgui.Button("Load") then
+                    local action_executed = false
+
+                    if imgui.SmallButton("Load") then
                         player_loader_states[opened_tab_player_id].actions_str = val
+                        action_executed = true
                         logger.info("Load to wand loader complete")
                     end
 
                     imgui.SameLine()
-                    if imgui.Button("Duplicate") then
+                    if imgui.SmallButton("Duplicate") then
+                        action_executed = true
                         logger.info("NOT IMPLEMENTED YET :)")
                     end
 
                     imgui.SameLine()
-                    if imgui.Button("Move") then
+                    if imgui.SmallButton("Move") then
+                        action_executed = true
                         logger.info("NOT IMPLEMENTED YET :)")
                     end
 
                     imgui.SameLine()
                     if imgui_cautious_btn(imgui, "Delete") then
                         wand_storage_box:remove(cat_key, val_key)
+                        action_executed = true
                         logger.info(
                             ("Deleted '%s' from category '%s'").format(val_key, cat_key)
                         )
                     end
 
+                    if action_executed then
+                        wand_storage_box:save_to_globals(wand_storage_box_globals_key)
+                        logger.info("Action Detected, Saved Storage Box")
+                    end
+
+                    imgui.PopID()
                 end
 
                 imgui.EndTabItem()

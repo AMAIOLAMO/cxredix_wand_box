@@ -81,4 +81,8 @@ function M:serialize()
     return table_concat(lines, "\n")
 end
 
+function M:save_to_globals(globals_key)
+    GlobalsSetValue(globals_key, self:serialize())
+end
+
 return M
