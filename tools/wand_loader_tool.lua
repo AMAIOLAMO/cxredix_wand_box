@@ -23,8 +23,8 @@ local umath = dofile_once(core_path .. "math_utils.lua")
 --- @module "core.logger"
 local logger = dofile_once(core_path .. "logger.lua")
 
---- @module "core.wand_storage_box"
-local WandStorageBox = dofile_once(core_path .. "wand_storage_box.lua")
+--- @module "core.category_kv_map"
+local WandStorageBox = dofile_once(core_path .. "category_kv_map.lua")
 
 local M = {
     name = "Wand Loader",
@@ -44,6 +44,11 @@ local opened_tab_player_id = nil
 local wand_storage_box = nil
 local storage_box_save_name = "MyCoolWand"
 local storage_box_save_category = "Any"
+
+local delete_popup_msg = "EMPTY_MSG :O Oh no!"
+local delete_popup_action = nil
+
+local req_save_storage_box = false
 
 local function imgui_cautious_btn(imgui, id)
     imgui.PushStyleColor(imgui.Col.Button, 0.8, 0.45, 0.45)
@@ -86,6 +91,14 @@ function M.on_world_post_update(dt_secs, wndbx_state)
         end
 
         load_wand_player_id = -1
+    end
+    
+    -- update storage box if something changed
+    if req_save_storage_box then
+        req_save_storage_box = false
+
+        wand_storage_box:save_to_globals(wand_storage_box_globals_key)
+        logger.info("Action Detected, Saved Storage Box")
     end
 
     -- render marker on player
@@ -380,8 +393,6 @@ end
 local opened_category_tab_key = nil
 
 function M.render_wand_storage_box(imgui, loader_state)
-    local req_save_storage_box = false
-
     local _
 
     imgui.Text("Save Category")
@@ -402,7 +413,7 @@ function M.render_wand_storage_box(imgui, loader_state)
             loader_state.actions_str
         )
 
-        wand_storage_box:save_to_globals(wand_storage_box_globals_key)
+        req_save_storage_box = true
 
         logger.info(
             "Save complete"
@@ -481,11 +492,31 @@ function M.render_wand_storage_box(imgui, loader_state)
 
                         imgui.SameLine()
                         if imgui_cautious_btn(imgui, "-") then
-                            wand_storage_box:remove_value(cat_key, val_key)
-                            req_save_storage_box = true
-                            logger.info(
-                                ("Deleted '%s' from category '%s'").format(val_key, cat_key)
-                            )
+                            delete_popup_msg = "Do you really want to delete this item?"
+
+                            delete_popup_action = function()
+                                wand_storage_box:remove_value(cat_key, val_key)
+                                req_save_storage_box = true
+
+                                logger.info(
+                                    ("Deleted '%s' from category '%s'").format(val_key, cat_key)
+                                )
+                            end
+
+                            imgui.OpenPopup("delete_confirm_popup")
+                        end
+
+
+                        if imgui.BeginPopup("delete_confirm_popup") then
+                            imgui.Text(delete_popup_msg)
+
+                            imgui.Text("Click anywhere else to cancel")
+
+                            if imgui.Button("Yes") then
+                                delete_popup_action()
+                            end
+
+                            imgui.EndPopup()
                         end
 
                         imgui.PopID()
@@ -493,7 +524,6 @@ function M.render_wand_storage_box(imgui, loader_state)
 
                     imgui.EndTable()
                 end
-
 
 
                 imgui.EndTabItem()
@@ -527,11 +557,6 @@ function M.render_wand_storage_box(imgui, loader_state)
     end
 
 
-    -- update storage box if something changed
-    if req_save_storage_box then
-        wand_storage_box:save_to_globals(wand_storage_box_globals_key)
-        logger.info("Action Detected, Saved Storage Box")
-    end
 end
 
 return M

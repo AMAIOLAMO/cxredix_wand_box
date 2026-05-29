@@ -1,4 +1,4 @@
-local WandStorageBox = require("core.wand_storage_box")
+local WandStorageBox = require("core.category_kv_map")
 
 -- Load strict format data
 local raw = [[

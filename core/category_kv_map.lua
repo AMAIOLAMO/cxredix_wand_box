@@ -1,4 +1,4 @@
---- @module "core.wand_storage_box"
+--- @module "core.category_kv_map"
 local M = {}
 M.__index = M
 
