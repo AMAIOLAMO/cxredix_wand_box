@@ -15,10 +15,10 @@ function M.load(raw_strs)
     assert(type(raw_strs) == "string", "Input must be a string")
     local obj = { category_kv_map = {} }
 
-    for cat, key, val in string_gmatch(raw_strs, fmt_pattern) do
+    for cat_key, val_key, val_str in string_gmatch(raw_strs, fmt_pattern) do
         -- cool way to initialize to {} if nil
-        obj.category_kv_map[cat] = obj.category_kv_map[cat] or {}
-        obj.category_kv_map[cat][key] = val
+        obj.category_kv_map[cat_key] = obj.category_kv_map[cat_key] or {}
+        obj.category_kv_map[cat_key][val_key] = val_str
     end
 
     return setmetatable(obj, M)
@@ -73,6 +73,16 @@ function M:remove_value(category, key)
     end
 end
 
+function M:remove_all_values_from_category(category)
+    if self:has_category(category) then
+        local cat = self:get_all_from_category(category)
+
+        for val_key, _ in pairs(cat) do
+            self:remove_value(category, val_key)
+        end
+    end
+end
+
 function M:get_all_from_category(category)
     assert(type(category) == "string", "Category is required")
     return self.category_kv_map[category] or {}
@@ -86,9 +96,9 @@ function M:serialize()
     local lines = {}
 
     for cat_key, cat in pairs(self.category_kv_map) do
-        for val_key, val in pairs(cat) do
+        for val_key, val_str in pairs(cat) do
             lines[#lines + 1] = string_format(
-                "%s:%s '%s'", cat_key, val_key, val
+                "%s:%s '%s'", cat_key, val_key, val_str
             )
         end
     end

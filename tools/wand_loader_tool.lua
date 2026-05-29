@@ -408,8 +408,13 @@ function M.render_wand_storage_box(imgui)
     local req_save_storage_box = false
 
     if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete All Items In Category") then
+        wand_storage_box:remove_all_values_from_category(opened_category_tab_key)
+
         req_save_storage_box = true
-        logger.info("NOT IMPLEMENTED YET :)")
+
+        logger.info(
+            ("Removed all items from category '%s'"):format(opened_category_tab_key)
+        )
     end
 
     imgui.SameLine()

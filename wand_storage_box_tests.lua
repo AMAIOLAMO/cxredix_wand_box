@@ -84,4 +84,21 @@ for k, cat in pairs(ws2_all) do
     end
 end
 
+
+-- deleting entire section
+
+w:remove_all_values_from_category("Any")
+
+assert(w:has_value("Any", "Test") == false)
+assert(w:has_value("Any", "Love") == false)
+
+assert(w:has_value("Other", "B") == true)
+assert(w:has_value("Other", "A") == true)
+
+w:remove_all_values_from_category("Other")
+
+assert(w:has_value("Other", "B") == false)
+assert(w:has_value("Other", "A") == false)
+
+
 print("Complete")
