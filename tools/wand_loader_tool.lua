@@ -438,21 +438,32 @@ function M.render_wand_storage_box(imgui)
             if imgui.BeginTabItem(string.format("%s", cat_key)) then
                 opened_category_tab_key = cat_key
 
-                for val_key, str_val in pairs(cat) do
+                for val_key, val_str in pairs(cat) do
                     imgui.PushID("##" .. val_key)
 
                     imgui.BulletText(val_key)
 
                     imgui.SameLine()
                     if imgui.SmallButton("Edit") then
-                        player_loader_states[opened_tab_player_id].actions_str = str_val
+                        player_loader_states[opened_tab_player_id].actions_str = val_str
                         logger.info("copy edit complete")
                     end
 
                     imgui.SameLine()
                     if imgui.SmallButton("Duplicate") then
                         req_save_storage_box = true
-                        logger.info("NOT IMPLEMENTED YET :)")
+
+                        local new_key = val_key
+
+                        while wand_storage_box:has_value(opened_category_tab_key, new_key) do
+                            new_key = new_key .. "_COPY"
+                        end
+
+                        wand_storage_box:set(opened_category_tab_key, new_key, val_str)
+
+                        logger.info(
+                            ("Copied '%s' to '%s'"):format(val_key, new_key)
+                        )
                     end
 
                     imgui.SameLine()
