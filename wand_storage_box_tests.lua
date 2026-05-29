@@ -8,7 +8,12 @@ local raw = [[
     Other:A 'ABC'
     Other:B 'BCD'
 ]]
+
 local w = WandStorageBox.load(raw)
+assert(w:is_empty() == false)
+
+local w_empty = WandStorageBox.load("")
+assert(w_empty:is_empty() == true)
 
 assert(w:has_value("Any", "Test") == true)
 assert(w:has_value("Any", "Love") == true)
@@ -40,13 +45,18 @@ w:set("New", "VeryNew", "ABC")
 
 assert(w:has_value("New", "VeryNew") and w:get("New", "VeryNew") == "ABC")
 
-w:remove("Any", "Cool")
+w:remove_value("Any", "Cool")
 
 assert(w:has_value("Any", "Cool") == false and w:get("Any", "Cool") == nil)
 
-w:remove("New", "VeryNew")
+w:remove_value("New", "VeryNew")
 
 assert(w:has_value("New", "VeryNew") == false and w:get("New", "VeryNew") == nil)
+assert(w:has_category("New") == true)
+
+w:remove_category("New")
+assert(w:has_category("New") == false)
+
 
 -- Get all data from ONE category
 local ct_data = w:get_all_from_category("Any")

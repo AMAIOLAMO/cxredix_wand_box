@@ -334,6 +334,8 @@ function M.render_window(imgui, wndbx_state)
 
 
     if wand_storage_box then
+        imgui.Separator()
+
         M.render_wand_storage_box(imgui)
     end
 end
@@ -392,14 +394,33 @@ function M.begin_held_wand_load(player_id, action_str, loader_state, adapt_deck_
     end
 end
 
-function M.render_wand_storage_box(imgui)
-    imgui.Separator()
+local opened_category_tab_key = nil
 
-    if imgui_cautious_btn(imgui, "Delete All Items In Category") then
+function M.render_wand_storage_box(imgui)
+    if wand_storage_box:is_empty() then
+        imgui.BulletText(
+            "Your Storage Box Is Empty :(, Save some wands to see them here!"
+        )
+
+        return
+    end
+
+    local req_save_storage_box = false
+
+    if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete All Items In Category") then
+        req_save_storage_box = true
+        logger.info("NOT IMPLEMENTED YET :)")
     end
 
     imgui.SameLine()
-    if imgui_cautious_btn(imgui, "Delete Entire Category") then
+    if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete Entire Category") then
+        wand_storage_box:remove_category(opened_category_tab_key)
+
+        req_save_storage_box = true
+
+        logger.info(
+            ("Removed category '%s'"):format(opened_category_tab_key)
+        )
     end
 
     -- Render Storage Box
@@ -410,44 +431,38 @@ function M.render_wand_storage_box(imgui)
             imgui.PushID("##" .. cat_key)
 
             if imgui.BeginTabItem(string.format("%s", cat_key)) then
-                for val_key, val in pairs(cat) do
+                opened_category_tab_key = cat_key
+
+                for val_key, str_val in pairs(cat) do
                     imgui.PushID("##" .. val_key)
 
                     imgui.BulletText(val_key)
+
                     imgui.SameLine()
-
-                    local action_executed = false
-
-                    if imgui.SmallButton("Load") then
-                        player_loader_states[opened_tab_player_id].actions_str = val
-                        action_executed = true
-                        logger.info("Load to wand loader complete")
+                    if imgui.SmallButton("Edit") then
+                        player_loader_states[opened_tab_player_id].actions_str = str_val
+                        logger.info("copy edit complete")
                     end
 
                     imgui.SameLine()
                     if imgui.SmallButton("Duplicate") then
-                        action_executed = true
+                        req_save_storage_box = true
                         logger.info("NOT IMPLEMENTED YET :)")
                     end
 
                     imgui.SameLine()
                     if imgui.SmallButton("Move") then
-                        action_executed = true
+                        req_save_storage_box = true
                         logger.info("NOT IMPLEMENTED YET :)")
                     end
 
                     imgui.SameLine()
                     if imgui_cautious_btn(imgui, "Delete") then
-                        wand_storage_box:remove(cat_key, val_key)
-                        action_executed = true
+                        wand_storage_box:remove_value(cat_key, val_key)
+                        req_save_storage_box = true
                         logger.info(
                             ("Deleted '%s' from category '%s'").format(val_key, cat_key)
                         )
-                    end
-
-                    if action_executed then
-                        wand_storage_box:save_to_globals(wand_storage_box_globals_key)
-                        logger.info("Action Detected, Saved Storage Box")
                     end
 
                     imgui.PopID()
@@ -460,6 +475,12 @@ function M.render_wand_storage_box(imgui)
         end
 
         imgui.EndTabBar()
+    end
+
+    -- update storage box if something changed
+    if req_save_storage_box then
+        wand_storage_box:save_to_globals(wand_storage_box_globals_key)
+        logger.info("Action Detected, Saved Storage Box")
     end
 end
 

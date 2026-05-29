@@ -28,6 +28,14 @@ function M.load_from_globals(globals_key)
     return M.load(GlobalsGetValue(globals_key, ""))
 end
 
+function M:is_empty()
+    for _k, _v in pairs(self:get_all()) do
+        return false
+    end
+
+    return true
+end
+
 function M:get(category, key)
     assert(type(category) == "string", "Category is required to be a string")
     assert(type(key) == "string", "Key is required to be a string")
@@ -49,13 +57,20 @@ function M:has_category(category)
     return self.category_kv_map[category] ~= nil
 end
 
+function M:remove_category(category)
+    if self:has_category(category) then
+        self.category_kv_map[category] = nil
+    end
+end
+
 function M:has_value(category, key)
     return self:get(category, key) ~= nil
 end
 
-function M:remove(category, key)
-    local cat_tbl = self.category_kv_map[category]
-    if cat_tbl then cat_tbl[key] = nil end
+function M:remove_value(category, key)
+    if self:has_value(category, key) then
+        self.category_kv_map[category][key] = nil
+    end
 end
 
 function M:get_all_from_category(category)
