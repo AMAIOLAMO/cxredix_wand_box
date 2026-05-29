@@ -380,6 +380,8 @@ end
 local opened_category_tab_key = nil
 
 function M.render_wand_storage_box(imgui, loader_state)
+    local req_save_storage_box = false
+
     local _
 
     imgui.Text("Save Category")
@@ -400,12 +402,15 @@ function M.render_wand_storage_box(imgui, loader_state)
             loader_state.actions_str
         )
 
+        wand_storage_box:save_to_globals(wand_storage_box_globals_key)
+
         logger.info(
             "Save complete"
         )
     end
 
     imgui.Separator()
+
 
     if wand_storage_box:is_empty() then
         imgui.BulletText(
@@ -414,8 +419,6 @@ function M.render_wand_storage_box(imgui, loader_state)
 
         return
     end
-
-    local req_save_storage_box = false
 
     if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete All Items In Category") then
         wand_storage_box:remove_all_values_from_category(opened_category_tab_key)
@@ -446,53 +449,74 @@ function M.render_wand_storage_box(imgui, loader_state)
             imgui.PushID("##" .. cat_key)
 
             if imgui.BeginTabItem(string.format("%s", cat_key)) then
+                local tbl_flags = bit.bor(
+                    imgui.TableFlags.Resizable,
+                    imgui.TableFlags.Hideable,
+                    imgui.TableFlags.RowBg
+                )
+
+                local col_count = 2
+
                 opened_category_tab_key = cat_key
 
-                for val_key, val_str in pairs(cat) do
-                    imgui.PushID("##" .. val_key)
+                if imgui.BeginTable("##Table_" .. cat_key, col_count, tbl_flags) then
+                    imgui.TableSetupColumn("Name")
+                    imgui.TableSetupColumn("Action", imgui.TableColumnFlags.WidthFixed)
+                    imgui.TableHeadersRow()
 
-                    imgui.BulletText(val_key)
+                    for val_key, val_str in pairs(cat) do
+                        imgui.PushID("##" .. val_key)
 
-                    imgui.SameLine()
-                    if imgui.SmallButton("Edit") then
-                        loader_state.actions_str = val_str
-                        logger.info("copy edit complete")
-                    end
+                        -- Name Column
+                        imgui.TableNextColumn()
+                        imgui.BulletText(val_key)
 
-                    imgui.SameLine()
-                    if imgui.SmallButton("Duplicate") then
-                        req_save_storage_box = true
-
-                        local new_key = val_key
-
-                        while wand_storage_box:has_value(opened_category_tab_key, new_key) do
-                            new_key = new_key .. "_COPY"
+                        -- Action Column
+                        imgui.TableNextColumn()
+                        if imgui.SmallButton("Edit") then
+                            loader_state.actions_str = val_str
+                            logger.info("copy edit complete")
                         end
 
-                        wand_storage_box:set(opened_category_tab_key, new_key, val_str)
+                        imgui.SameLine()
+                        if imgui.SmallButton("Duplicate") then
+                            req_save_storage_box = true
 
-                        logger.info(
-                            ("Copied '%s' to '%s'"):format(val_key, new_key)
-                        )
+                            local new_key = val_key
+
+                            while wand_storage_box:has_value(opened_category_tab_key, new_key) do
+                                new_key = new_key .. "_COPY"
+                            end
+
+                            wand_storage_box:set(opened_category_tab_key, new_key, val_str)
+
+                            logger.info(
+                                ("Copied '%s' to '%s'"):format(val_key, new_key)
+                            )
+                        end
+
+                        imgui.SameLine()
+                        if imgui.SmallButton("Move") then
+                            req_save_storage_box = true
+                            logger.info("NOT IMPLEMENTED YET :)")
+                        end
+
+                        imgui.SameLine()
+                        if imgui_cautious_btn(imgui, "Delete") then
+                            wand_storage_box:remove_value(cat_key, val_key)
+                            req_save_storage_box = true
+                            logger.info(
+                                ("Deleted '%s' from category '%s'").format(val_key, cat_key)
+                            )
+                        end
+
+                        imgui.PopID()
                     end
 
-                    imgui.SameLine()
-                    if imgui.SmallButton("Move") then
-                        req_save_storage_box = true
-                        logger.info("NOT IMPLEMENTED YET :)")
-                    end
-
-                    imgui.SameLine()
-                    if imgui_cautious_btn(imgui, "Delete") then
-                        wand_storage_box:remove_value(cat_key, val_key)
-                        req_save_storage_box = true
-                        logger.info(
-                            ("Deleted '%s' from category '%s'").format(val_key, cat_key)
-                        )
-                    end
-
-                    imgui.PopID()
+                    imgui.EndTable()
                 end
+
+
 
                 imgui.EndTabItem()
             end
