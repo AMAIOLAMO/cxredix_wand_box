@@ -39,6 +39,8 @@ local player_pick_marker_id = nil
 local player_pick_marker_sprite_id = nil
 local picked_player_marker_fade_wait_timer = 0
 
+local opened_tab_player_id = nil
+
 local wand_storage_box = nil
 local storage_box_save_name = "MyCoolWand"
 local storage_box_save_category = "Any"
@@ -205,7 +207,7 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
                 )
 
                 if ModIsEnabled("quant.ew") then
-                    logger.log_info("Found Entangled Worlds, syncing wand to peers...")
+                    logger.info("Found Entangled Worlds, syncing wand to peers...")
                     -- this should call ONLY on peers, does not include the caller
                     CrossCall("cx_wndbx_current_player_sync_actions", loader_state.actions_str)
                 end
@@ -220,7 +222,7 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
 
                 -- sync to other players as well :)
                 if ModIsEnabled("quant.ew") then
-                    logger.log_info("Found Entangled Worlds, syncing wand to peers...")
+                    logger.info("Found Entangled Worlds, syncing wand to peers...")
                     -- this should call ONLY on peers, does not include the caller
                     CrossCall("cx_wndbx_current_player_sync_actions", loader_state.actions_str)
                 end
@@ -234,12 +236,17 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
 
         if imgui.CollapsingHeader("Storage Box") then
             local _
-            _, storage_box_save_name = imgui.InputText(
-                "Save Name", storage_box_save_name
+
+            imgui.Text("Save Category")
+            imgui.SameLine()
+            _, storage_box_save_category = imgui.InputText(
+                "##SaveCategory", storage_box_save_category
             )
 
-            _, storage_box_save_category = imgui.InputText(
-                "Save Category", storage_box_save_category
+            imgui.Text("Save Name")
+            imgui.SameLine()
+            _, storage_box_save_name = imgui.InputText(
+                "##SaveName", storage_box_save_name
             )
 
             if imgui.Button("Save to Storage Box") then
@@ -247,7 +254,8 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
                     storage_box_save_category, storage_box_save_name,
                     loader_state.actions_str
                 )
-                logger.log_info("Save / Override complete")
+
+                logger.info("Save / Override complete")
             end
 
         end
@@ -306,6 +314,8 @@ function M.render_window(imgui, wndbx_state)
             end
 
             if imgui.BeginTabItem(string.format("Player [%d]", player_id)) then
+                opened_tab_player_id = player_id
+
                 M.render_tab_for_player(
                     imgui, wndbx_state,
                     player_id, player_loader_states[player_id]
@@ -321,46 +331,8 @@ function M.render_window(imgui, wndbx_state)
     end
 
 
-    imgui.Text("Wand Storage Box")
-
-    -- Render Storage Box
-    if imgui.BeginTabBar("Wand Storage Box") then
-        local storage_all = wand_storage_box:get_all()
-
-        for cat_key, cat in pairs(storage_all) do
-            imgui.PushID("##" .. cat_key)
-
-            if imgui.BeginTabItem(string.format("%s", cat_key)) then
-                for str_key, val in pairs(cat) do
-                    imgui.BulletText(str_key)
-                    imgui.SameLine()
-
-                    if imgui.Button("Load") then
-
-                    end
-
-                    imgui.SameLine()
-                    if imgui.Button("Delete") then
-                        wand_storage_box:remove(cat_key, str_key)
-                    end
-
-                    imgui.SameLine()
-                    if imgui.Button("Duplicate") then
-
-                    end
-
-                    imgui.SameLine()
-                    if imgui.Button("Move") then
-                    end
-                end
-
-                imgui.EndTabItem()
-            end
-
-            imgui.PopID()
-        end
-
-        imgui.EndTabBar()
+    if wand_storage_box then
+        M.render_wand_storage_box(imgui)
     end
 end
 
@@ -368,7 +340,7 @@ function M.begin_wand_direct_sync(player_id, actions_str, loader_state)
     local held_wand_id = wand_utils.get_held_wand_id(player_id)
 
     if held_wand_id ~= nil then
-        logger.log_info("Trying to sync")
+        logger.info("Trying to sync")
 
         load_wand_timer:clear()
         load_wand_timer:begin_append()
@@ -383,9 +355,9 @@ function M.begin_wand_direct_sync(player_id, actions_str, loader_state)
 
         loader_state.prev_action_count = #action_ids
 
-        logger.log_info("Sync Notified, Wand refresh complete.")
+        logger.info("Sync Notified, Wand refresh complete.")
     else
-        logger.log_info("Player is not holding a wand to directly sync to")
+        logger.info("Player is not holding a wand to directly sync to")
     end
 end
 
@@ -393,7 +365,7 @@ function M.begin_held_wand_load(player_id, action_str, loader_state, adapt_deck_
     local held_wand = wand_utils.get_held_wand_id(player_id)
 
     if held_wand ~= nil then
-        logger.log_info("Loading held wand")
+        logger.info("Loading held wand")
 
         load_wand_timer:clear()
         load_wand_timer:begin_append()
@@ -409,12 +381,69 @@ function M.begin_held_wand_load(player_id, action_str, loader_state, adapt_deck_
         load_wand_timer:end_append()
         loader_state.prev_wand_load_time = load_wand_timer:get_total_secs()
 
-        logger.log_info(
+        logger.info(
             "Wand Load complete, it took: " ..
             tostring(loader_state.prev_wand_load_time)
         )
     else
-        logger.log_info("Held wand not found, is the targetted player holding a wand?")
+        logger.info("Held wand not found, is the targetted player holding a wand?")
+    end
+end
+
+function M.render_wand_storage_box(imgui)
+    imgui.Separator()
+
+    if imgui_cautious_btn(imgui, "Delete All Items In Category") then
+    end
+
+    imgui.SameLine()
+    if imgui_cautious_btn(imgui, "Delete Entire Category") then
+    end
+
+    -- Render Storage Box
+    if imgui.BeginTabBar("Wand Storage Box") then
+        local storage_all = wand_storage_box:get_all()
+
+        for cat_key, cat in pairs(storage_all) do
+            imgui.PushID("##" .. cat_key)
+
+            if imgui.BeginTabItem(string.format("%s", cat_key)) then
+                for val_key, val in pairs(cat) do
+                    imgui.BulletText(val_key)
+                    imgui.SameLine()
+
+                    if imgui.Button("Load") then
+                        player_loader_states[opened_tab_player_id].actions_str = val
+                        logger.info("Load to wand loader complete")
+                    end
+
+                    imgui.SameLine()
+                    if imgui.Button("Duplicate") then
+                        logger.info("NOT IMPLEMENTED YET :)")
+                    end
+
+                    imgui.SameLine()
+                    if imgui.Button("Move") then
+                        logger.info("NOT IMPLEMENTED YET :)")
+                    end
+
+                    imgui.SameLine()
+                    if imgui_cautious_btn(imgui, "Delete") then
+                        wand_storage_box:remove(cat_key, val_key)
+                        logger.info(
+                            ("Deleted '%s' from category '%s'").format(val_key, cat_key)
+                        )
+                    end
+
+                end
+
+                imgui.EndTabItem()
+            end
+
+            imgui.PopID()
+        end
+
+        imgui.EndTabBar()
     end
 end
 

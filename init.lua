@@ -151,7 +151,7 @@ else
 
     function OnWorldPostUpdate()
         if warn_frames <= 0 then
-            logger.log_info("[Wand Box] Cannot find Noita Dear Imgui, It is either you didn't install it")
+            logger.info("[Wand Box] Cannot find Noita Dear Imgui, It is either you didn't install it")
             GamePrint("[Wand Box] Or that you didn't put Wand Box mod below Noita Dear Imgui in the mod list :3")
             warn_frames = warn_notify_interval_frames
         end

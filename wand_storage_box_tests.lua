@@ -4,28 +4,49 @@ local WandStorageBox = require("core.wand_storage_box")
 local raw = [[
     Any:Test 'ABC, 1, 1; [G]: 1'
     Any:Love 'I, Love, Noita'
+    
+    Other:A 'ABC'
+    Other:B 'BCD'
 ]]
 local w = WandStorageBox.load(raw)
 
 assert(w:has_value("Any", "Test") == true)
+assert(w:has_value("Any", "Love") == true)
+assert(w:has_value("Other", "B") == true)
+assert(w:has_value("Other", "A") == true)
 
 assert(w:has_value("any", "Test") == false)
 assert(w:has_value("Any", "test") == false)
 
 assert(w:has_category("Any") == true)
+assert(w:has_category("Other") == true)
+assert(w:has_category("other") == false)
 assert(w:has_category("any") == false)
 assert(w:has_category("abc") == false)
 
 assert(w:get("Any", "Test") == 'ABC, 1, 1; [G]: 1')
+assert(w:get("Any", "Love") == 'I, Love, Noita')
+
+assert(w:get("Other", "A") == 'ABC')
+assert(w:get("Other", "B") == 'BCD')
+
 assert(w:get("a", "b") == nil)
 
 w:set("Any", "Cool", "SPELL_1, SPELL_2")
 
 assert(w:has_value("Any", "Cool") and w:get("Any", "Cool") == "SPELL_1, SPELL_2")
 
+w:set("New", "VeryNew", "ABC")
+
+assert(w:has_value("New", "VeryNew") and w:get("New", "VeryNew") == "ABC")
+
 w:remove("Any", "Cool")
 
 assert(w:has_value("Any", "Cool") == false and w:get("Any", "Cool") == nil)
+
+w:remove("New", "VeryNew")
+
+assert(w:has_value("New", "VeryNew") == false and w:get("New", "VeryNew") == nil)
 
 -- Get all data from ONE category
 local ct_data = w:get_all_from_category("Any")

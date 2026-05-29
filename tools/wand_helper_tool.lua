@@ -51,7 +51,7 @@ function M.render_window(imgui, wndbox_state)
         end
 
         if imgui.Button("Copy wand actions str") then
-            logger.log_info("found player and held wand")
+            logger.info("found player and held wand")
 
             local actions_str = wand_utils.wand_get_all_actions_as_actions_str(
                 held_wand_id
@@ -59,7 +59,7 @@ function M.render_window(imgui, wndbox_state)
 
             imgui.SetClipboardText(actions_str)
 
-            logger.log_info(
+            logger.info(
                 string.format("Copy complete, total of %d characters", #actions_str)
             )
         end
@@ -82,15 +82,15 @@ function M.render_window(imgui, wndbox_state)
                 local player_id = player_utils.get_first_player_id()
 
                 if player_id == nil then
-                    logger.log_info("Cannot spawn, Reason: cannot find player")
+                    logger.info("Cannot spawn, Reason: cannot find player")
                 else
                     local x, y = EntityGetTransform(player_id)
 
                     local wand_id = wand_utils.spawn_default_wand_at(x, y)
-                    logger.log_info("Wand Spawned at player")
+                    logger.info("Wand Spawned at player")
 
                     wnd_attribs:apply_to(wand_id)
-                    logger.log_info("Wand attributes applied")
+                    logger.info("Wand attributes applied")
 
                     if should_dupe_actions then
                         local action_ids = wand_utils.wand_get_all_action_ids(
@@ -118,7 +118,7 @@ function M.render_window(imgui, wndbox_state)
         wand_utils.force_refresh_all_wands_on_player(
             player_utils.get_player_id(wndbox_state.picked_player_idx)
         )
-        logger.log_info("Refresh Complete")
+        logger.info("Refresh Complete")
     end
 end
 
@@ -142,14 +142,14 @@ function M.show_delay_clearing(imgui, held_wand_id)
         if should_clear_cast_delay then
             ComponentSetValue2(ability_comp, "mNextFrameUsable", current_frame)
 
-            logger.log_info("Cleared Cast Delay")
+            logger.info("Cleared Cast Delay")
         end
 
         if should_clear_recharge_time then
             ComponentSetValue2(ability_comp, "mReloadFramesLeft", 0)
             ComponentSetValue2(ability_comp, "mReloadNextFrameUsable", current_frame)
 
-            logger.log_info("Cleared reload time")
+            logger.info("Cleared reload time")
         end
     end
 end

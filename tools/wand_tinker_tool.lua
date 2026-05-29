@@ -212,16 +212,16 @@ function M.render_window(imgui, wndbx_state)
     if imgui.Button("Copy wand attributes") then
         wnd_attribs = WandAttribs.from_wand_entity(picked_wand_id)
 
-        logger.log_info("Copied picked wand's attributes")
+        logger.info("Copied picked wand's attributes")
     end
 
     imgui.SameLine()
     if imgui.Button("Update on Wand") then
         wnd_attribs:apply_to(picked_wand_id)
-        logger.log_info("updated picked wand")
+        logger.info("updated picked wand")
 
         wand_utils.force_refresh_all_wands_on_player(picked_player_id)
-        logger.log_info("refreshed wands for player")
+        logger.info("refreshed wands for player")
     end
 
     imgui.SameLine()
@@ -229,21 +229,21 @@ function M.render_window(imgui, wndbx_state)
         local x, y = EntityGetTransform(picked_player_id)
 
         local wand_id = wand_utils.spawn_default_wand_at(x, y)
-        logger.log_info("Wand Spawned at player")
+        logger.info("Wand Spawned at player")
 
         wnd_attribs:apply_to(wand_id)
-        logger.log_info("Wand attributes applied")
+        logger.info("Wand attributes applied")
     end
 
 
     -- Preset loading
     if imgui.Button("Load Preset") then
-        logger.log_info("Not yet done! Coming soon :)")
+        logger.info("Not yet done! Coming soon :)")
     end
 
     imgui.SameLine()
     if imgui.Button("Save Preset") then
-        logger.log_info("Not yet done! Coming soon :)")
+        logger.info("Not yet done! Coming soon :)")
     end
 end
 

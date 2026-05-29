@@ -18,11 +18,11 @@ function _add_card_to_deck(action_id, inventoryitem_id, uses_remaining, is_ident
     if cx_deck_sync.should_sync() then
         local raw_deck_str = cx_deck_sync.consume_sync()
 
-        logger.log_info("Received Sync!")
-        logger.log_info("Clearing Deck...")
+        logger.info("Received Sync!")
+        logger.info("Clearing Deck...")
         _clear_deck(false)
 
-        logger.log_info("deck cleared, loading...")
+        logger.info("deck cleared, loading...")
 
         local deck_action_ids = cx_parser.parse_to_action_ids(raw_deck_str)
 
@@ -32,7 +32,7 @@ function _add_card_to_deck(action_id, inventoryitem_id, uses_remaining, is_ident
 
         cx_deck_sync.mark_sync_complete_flag()
 
-        logger.log_info("Load finished!")
+        logger.info("Load finished!")
 
         return
     end

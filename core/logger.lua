@@ -2,7 +2,7 @@
 local M = {}
 
 
-function M.log_info(msg)
+function M.info(msg)
     GamePrint("[Wand Box]" .. msg)
 end
 
