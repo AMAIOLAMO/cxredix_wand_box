@@ -195,13 +195,17 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
     -- end
 
 
-    if loader_state.actions_str ~= '' then
-        local _
-        _, loader_state.adapt_deck_size = imgui.Checkbox(
-            "Auto Adapt Deck Size", loader_state.adapt_deck_size
-        )
 
-        if imgui.CollapsingHeader("Wand Loading") then
+    if imgui.CollapsingHeader("Wand Loading") then
+        if loader_state.actions_str == '' then
+            imgui.BulletText(
+                "Type something into the Text Box above to start loading your great wands! :D"
+            )
+        else
+            local _
+            _, loader_state.adapt_deck_size = imgui.Checkbox(
+                "Auto Adapt Deck Size", loader_state.adapt_deck_size
+            )
 
             if imgui.Button("Direct sync to wand") then
                 M.begin_wand_direct_sync(
@@ -235,32 +239,11 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
                 loader_state.actions_str = ''
             end
         end
+    end
 
-        if imgui.CollapsingHeader("Storage Box") then
-            local _
-
-            imgui.Text("Save Category")
-            imgui.SameLine()
-            _, storage_box_save_category = imgui.InputText(
-                "##SaveCategory", storage_box_save_category
-            )
-
-            imgui.Text("Save Name")
-            imgui.SameLine()
-            _, storage_box_save_name = imgui.InputText(
-                "##SaveName", storage_box_save_name
-            )
-
-            if imgui.Button("Save to Storage Box") then
-                wand_storage_box:set(
-                    storage_box_save_category, storage_box_save_name,
-                    loader_state.actions_str
-                )
-
-                logger.info("Save / Override complete")
-            end
-
-        end
+    -- STORAGE BOX --
+    if wand_storage_box and imgui.CollapsingHeader("Storage Box") then
+        M.render_wand_storage_box(imgui, loader_state)
     end
 
 
@@ -333,11 +316,11 @@ function M.render_window(imgui, wndbx_state)
     end
 
 
-    if wand_storage_box then
-        imgui.Separator()
-
-        M.render_wand_storage_box(imgui)
-    end
+    -- if wand_storage_box then
+    --     imgui.Separator()
+    --
+    --     M.render_wand_storage_box(imgui)
+    -- end
 end
 
 function M.begin_wand_direct_sync(player_id, actions_str, loader_state)
@@ -396,7 +379,34 @@ end
 
 local opened_category_tab_key = nil
 
-function M.render_wand_storage_box(imgui)
+function M.render_wand_storage_box(imgui, loader_state)
+    local _
+
+    imgui.Text("Save Category")
+    imgui.SameLine()
+    _, storage_box_save_category = imgui.InputText(
+        "##SaveCategory", storage_box_save_category
+    )
+
+    imgui.Text("Save Name")
+    imgui.SameLine()
+    _, storage_box_save_name = imgui.InputText(
+        "##SaveName", storage_box_save_name
+    )
+
+    if imgui.Button("Save to Storage Box") then
+        wand_storage_box:set(
+            storage_box_save_category, storage_box_save_name,
+            loader_state.actions_str
+        )
+
+        logger.info(
+            "Save complete"
+        )
+    end
+
+    imgui.Separator()
+
     if wand_storage_box:is_empty() then
         imgui.BulletText(
             "Your Storage Box Is Empty :(, Save some wands to see them here!"
@@ -445,7 +455,7 @@ function M.render_wand_storage_box(imgui)
 
                     imgui.SameLine()
                     if imgui.SmallButton("Edit") then
-                        player_loader_states[opened_tab_player_id].actions_str = val_str
+                        loader_state.actions_str = val_str
                         logger.info("copy edit complete")
                     end
 
