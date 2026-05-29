@@ -411,34 +411,12 @@ function M.render_wand_storage_box(imgui, loader_state)
 
     imgui.Separator()
 
-
     if wand_storage_box:is_empty() then
         imgui.BulletText(
             "Your Storage Box Is Empty :(, Save some wands to see them here!"
         )
 
         return
-    end
-
-    if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete All Items In Category") then
-        wand_storage_box:remove_all_values_from_category(opened_category_tab_key)
-
-        req_save_storage_box = true
-
-        logger.info(
-            ("Removed all items from category '%s'"):format(opened_category_tab_key)
-        )
-    end
-
-    imgui.SameLine()
-    if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete Entire Category") then
-        wand_storage_box:remove_category(opened_category_tab_key)
-
-        req_save_storage_box = true
-
-        logger.info(
-            ("Removed category '%s'"):format(opened_category_tab_key)
-        )
     end
 
     -- Render Storage Box
@@ -502,7 +480,7 @@ function M.render_wand_storage_box(imgui, loader_state)
                         end
 
                         imgui.SameLine()
-                        if imgui_cautious_btn(imgui, "Delete") then
+                        if imgui_cautious_btn(imgui, "-") then
                             wand_storage_box:remove_value(cat_key, val_key)
                             req_save_storage_box = true
                             logger.info(
@@ -526,6 +504,28 @@ function M.render_wand_storage_box(imgui, loader_state)
 
         imgui.EndTabBar()
     end
+
+    if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete All Items In Category") then
+        wand_storage_box:remove_all_values_from_category(opened_category_tab_key)
+
+        req_save_storage_box = true
+
+        logger.info(
+            ("Removed all items from category '%s'"):format(opened_category_tab_key)
+        )
+    end
+
+    imgui.SameLine()
+    if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete Entire Category") then
+        wand_storage_box:remove_category(opened_category_tab_key)
+
+        req_save_storage_box = true
+
+        logger.info(
+            ("Removed category '%s'"):format(opened_category_tab_key)
+        )
+    end
+
 
     -- update storage box if something changed
     if req_save_storage_box then
