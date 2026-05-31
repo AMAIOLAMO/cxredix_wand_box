@@ -50,6 +50,7 @@ local delete_popup_action = nil
 
 local req_save_storage_box = false
 
+-- TODO: obsolete, use core.imgui_utils.cautious_button instead
 local function imgui_cautious_btn(imgui, id)
     imgui.PushStyleColor(imgui.Col.Button, 0.8, 0.45, 0.45)
     imgui.PushStyleColor(imgui.Col.ButtonHovered, 1, 0.6, 0.6)

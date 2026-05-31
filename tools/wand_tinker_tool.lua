@@ -20,6 +20,13 @@ local logger = dofile_once(core_path .. "logger.lua")
 --- @module "core.wand_attributes"
 local WandAttribs = dofile_once(core_path .. "wand_attributes.lua")
 
+--- @module "core.category_kv_map"
+local CategoryKVMap = dofile_once(core_path .. "category_kv_map.lua")
+---
+--- @module "core.category_kv_map_imgui"
+local CategoryKVMapImgui = dofile_once(core_path .. "category_kv_map_imgui.lua")
+
+
 --- @class wand_tinker_tool
 local M = {
     name = "Wand Tinker",
@@ -37,6 +44,15 @@ local wnd_attribs = WandAttribs.new_default()
 
 local should_limit_to_valid_values = true
 
+local wand_stat_presets_globals_key = "cx_wndbx_wand_stat_presets"
+
+local wand_stat_presets = nil
+
+function M.on_world_init()
+    wand_stat_presets = CategoryKVMap.load_from_globals(
+        wand_stat_presets_globals_key
+    )
+end
 
 function M.render_window(imgui, wndbx_state)
     imgui.Text(
@@ -235,7 +251,13 @@ function M.render_window(imgui, wndbx_state)
         logger.info("Wand attributes applied")
     end
 
+    if wand_stat_presets then
+        M.render_stat_presets(imgui)
+    end
 
+end
+
+function M.render_stat_presets(imgui)
     -- Preset loading
     if imgui.Button("Load Preset") then
         logger.info("Not yet done! Coming soon :)")
@@ -245,6 +267,9 @@ function M.render_window(imgui, wndbx_state)
     if imgui.Button("Save Preset") then
         logger.info("Not yet done! Coming soon :)")
     end
+
+    CategoryKVMapImgui.render(imgui, wand_stat_presets, {
+    })
 end
 
 

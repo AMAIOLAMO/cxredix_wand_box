@@ -1,4 +1,4 @@
---- @module "core.category_kv_map"
+--- @class core.category_kv_map
 local M = {}
 M.__index = M
 
