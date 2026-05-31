@@ -1,8 +1,12 @@
 local root_path = "mods/cxredix_wand_box/"
 local core_path = root_path .. "core/"
+local libs_path = root_path .. "libs/"
 
 --- @module 'core.wand_utils'
 local uwand = dofile_once(core_path .. "wand_utils.lua")
+
+--- @module 'libs.json'
+local json = dofile_once(libs_path .. "json.lua")
 
 --- @class WandAttributes
 local M = {
@@ -96,6 +100,56 @@ function M:apply_to(wand_id)
 
     uwand.wand_set_spread_degrees(wand_id, self.spread_degrees)
     uwand.wand_set_projectile_speed_multiplier(wand_id, self.proj_spd_multiplier)
+end
+
+function M.load(wand_attr_str)
+    local loaded_values = json.decode(wand_attr_str)
+
+    local new_obj = M.new_default()
+
+    -- TODO: this strictly has to sync with serialization, a change in structure
+    -- or order breaks this
+    new_obj.ui_name                    = loaded_values[1]
+    new_obj.item_name                  = loaded_values[2]
+    new_obj.always_use_item_name_in_ui = loaded_values[3]
+
+    new_obj.deck_capacity              = loaded_values[4]
+    new_obj.should_shuffle             = loaded_values[5]
+
+    new_obj.cd_frames                  = loaded_values[6]
+    new_obj.rt_frames                  = loaded_values[7]
+
+    new_obj.spells_per_cast            = loaded_values[8]
+
+    new_obj.mana_max                   = loaded_values[9]
+    new_obj.mana_chrg_spd_secs         = loaded_values[10]
+
+    new_obj.spread_degrees             = loaded_values[11]
+    new_obj.proj_spd_multiplier        = loaded_values[12]
+
+    return new_obj
+end
+
+function M:serialize()
+    return json.encode({
+        self.ui_name,
+        self.item_name,
+        self.always_use_item_name_in_ui,
+
+        self.deck_capacity,
+        self.should_shuffle,
+
+        self.cd_frames,
+        self.rt_frames,
+
+        self.spells_per_cast,
+
+        self.mana_max,
+        self.mana_chrg_spd_secs,
+
+        self.spread_degrees,
+        self.proj_spd_multiplier
+    })
 end
 
 return M

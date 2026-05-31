@@ -89,21 +89,21 @@ function M.render(imgui, ckv_map, actions)
 
                         if imgui.SmallButton("Edit") then
                             if on_edit_proc ~= nil then
-                                on_edit_proc(ckv_map)
+                                on_edit_proc(ckv_map, cat_key, val_key)
                             end
                         end
 
                         imgui.SameLine()
                         if imgui.SmallButton("Duplicate") then
                             if on_duplicate_proc ~= nil then
-                                on_duplicate_proc(ckv_map)
+                                on_duplicate_proc(ckv_map, cat_key, val_key)
                             end
                         end
 
                         imgui.SameLine()
                         if imgui.SmallButton("Move") then
                             if on_move_proc ~= nil then
-                                on_move_proc(ckv_map)
+                                on_move_proc(ckv_map, cat_key, val_key)
                             end
                         end
 
@@ -124,7 +124,7 @@ function M.render(imgui, ckv_map, actions)
                             if imgui.Button("Yes") then
 
                                 if delete_popup_action ~= nil then
-                                    delete_popup_action(ckv_map)
+                                    delete_popup_action(ckv_map, cat_key, val_key)
                                 end
 
                             end

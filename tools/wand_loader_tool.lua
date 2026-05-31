@@ -474,11 +474,11 @@ function M.render_wand_storage_box(imgui, loader_state)
 
                             local new_key = val_key
 
-                            while wand_storage_box:has_value(opened_category_tab_key, new_key) do
+                            while wand_storage_box:has_value(cat_key, new_key) do
                                 new_key = new_key .. "_COPY"
                             end
 
-                            wand_storage_box:set(opened_category_tab_key, new_key, val_str)
+                            wand_storage_box:set(cat_key, new_key, val_str)
 
                             logger.info(
                                 ("Copied '%s' to '%s'"):format(val_key, new_key)

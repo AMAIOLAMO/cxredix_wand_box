@@ -42,16 +42,31 @@ local time_unit_used = "frames"
 
 local wnd_attribs = WandAttribs.new_default()
 
+
 local should_limit_to_valid_values = true
 
 local wand_stat_presets_globals_key = "cx_wndbx_wand_stat_presets"
 
 local wand_stat_presets = nil
 
+local wand_stat_preset_save_category = "Any"
+local wand_stat_preset_save_name = "MyCoolStats"
+
+local wand_stat_presets_req_save = false
+
 function M.on_world_init()
     wand_stat_presets = CategoryKVMap.load_from_globals(
         wand_stat_presets_globals_key
     )
+end
+
+function M.on_world_post_update()
+    if wand_stat_presets_req_save then
+        wand_stat_presets_req_save = false
+    
+        wand_stat_presets:save_to_globals(wand_stat_presets_globals_key)
+        logger.info("Action Detected, Saved Wand Stat Presets")
+    end
 end
 
 function M.render_window(imgui, wndbx_state)
@@ -174,10 +189,10 @@ function M.render_window(imgui, wndbx_state)
         elseif time_unit_used == "frames" then
             local mana_chrg_spd_secs_changed, mana_chrg_spd_frame = imgui.InputInt(
                 "Mana Charge Speed(Mana / Frame)",
-                secs_to_frames_floored(wnd_attribs.mana_chrg_spd_secs)
+                wnd_attribs.mana_chrg_spd_secs / 60
             )
 
-            wnd_attribs.mana_chrg_spd_secs = frames_to_secs(mana_chrg_spd_frame)
+            wnd_attribs.mana_chrg_spd_secs = mana_chrg_spd_frame * 60
         end
 
     end
@@ -258,17 +273,51 @@ function M.render_window(imgui, wndbx_state)
 end
 
 function M.render_stat_presets(imgui)
-    -- Preset loading
-    if imgui.Button("Load Preset") then
-        logger.info("Not yet done! Coming soon :)")
-    end
+    local _
 
+    imgui.Text("Save Category")
     imgui.SameLine()
+    _, wand_stat_preset_save_category = imgui.InputText(
+        "##SaveCategory", wand_stat_preset_save_category
+    )
+
+    imgui.Text("Save Name")
+    imgui.SameLine()
+    _, wand_stat_preset_save_name = imgui.InputText(
+        "##SaveName", wand_stat_preset_save_name
+    )
+
     if imgui.Button("Save Preset") then
-        logger.info("Not yet done! Coming soon :)")
+        wand_stat_presets:set(
+            wand_stat_preset_save_category,
+            wand_stat_preset_save_name,
+
+            wnd_attribs:serialize()
+        )
+
+        logger.info(
+            ("Saved preset in category: '%s', with name: '%s'"):format(
+                wand_stat_preset_save_category,
+                wand_stat_preset_save_name
+            )
+        )
+
+        wand_stat_presets_req_save = true
+
     end
 
     CategoryKVMapImgui.render(imgui, wand_stat_presets, {
+        on_edit_proc = function(ckv_map, cat_key, val_key)
+            wnd_attribs = WandAttribs.load(
+                ckv_map:get(cat_key, val_key)
+            )
+
+            logger.info(
+                ("Loaded wand attributes from category '%s' of name '%s'"):format(
+                    cat_key, val_key
+                )
+            )
+        end
     })
 end
 
