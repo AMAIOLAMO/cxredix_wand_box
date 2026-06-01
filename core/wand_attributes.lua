@@ -5,10 +5,7 @@ local libs_path = root_path .. "libs/"
 --- @module 'core.wand_utils'
 local uwand = dofile_once(core_path .. "wand_utils.lua")
 
---- @module 'libs.json'
-local json = dofile_once(libs_path .. "json.lua")
-
---- @class WandAttributes
+--- @class core.wand_attributes
 local M = {
     -- placed here to make lsp happy
     ui_name = "Wand",
@@ -102,54 +99,61 @@ function M:apply_to(wand_id)
     uwand.wand_set_projectile_speed_multiplier(wand_id, self.proj_spd_multiplier)
 end
 
-function M.load(wand_attr_str)
-    local loaded_values = json.decode(wand_attr_str)
+function M.load(str)
+    local res = M.new_default()
 
-    local new_obj = M.new_default()
+    local ui_name, item_name, always_use_item_name_in_ui, deck_capacity,
+        should_shuffle, cd_frames, rt_frames, spells_per_cast,
+        mana_max, mana_chrg_spd_secs, spread_degrees, proj_spd_multiplier = str:match(
+            "`([^`]*)` `([^`]*)` ([^%s]+) ([^%s]+) ([^%s]+) ([^%s]+) ([^%s]+) ([^%s]+) ([^%s]+) ([^%s]+) ([^%s]+) ([^%s]+)"
+        )
 
     -- TODO: this strictly has to sync with serialization, a change in structure
     -- or order breaks this
-    new_obj.ui_name                    = loaded_values[1]
-    new_obj.item_name                  = loaded_values[2]
-    new_obj.always_use_item_name_in_ui = loaded_values[3]
+    
+    res.ui_name                    = ui_name
+    res.item_name                  = item_name
+    res.always_use_item_name_in_ui = always_use_item_name_in_ui == "true"
+    res.deck_capacity              = tonumber(deck_capacity)
 
-    new_obj.deck_capacity              = loaded_values[4]
-    new_obj.should_shuffle             = loaded_values[5]
+    res.should_shuffle             = should_shuffle == "true"
 
-    new_obj.cd_frames                  = loaded_values[6]
-    new_obj.rt_frames                  = loaded_values[7]
+    res.cd_frames                  = tonumber(cd_frames)
+    res.rt_frames                  = tonumber(rt_frames)
+    res.spells_per_cast            = tonumber(spells_per_cast)
+    res.mana_max                   = tonumber(mana_max)
+    res.mana_chrg_spd_secs         = tonumber(mana_chrg_spd_secs)
+    res.spread_degrees             = tonumber(spread_degrees)
+    res.proj_spd_multiplier        = tonumber(proj_spd_multiplier)
 
-    new_obj.spells_per_cast            = loaded_values[8]
-
-    new_obj.mana_max                   = loaded_values[9]
-    new_obj.mana_chrg_spd_secs         = loaded_values[10]
-
-    new_obj.spread_degrees             = loaded_values[11]
-    new_obj.proj_spd_multiplier        = loaded_values[12]
-
-    return new_obj
+    return res
 end
 
 function M:serialize()
-    return json.encode({
+    local fields = {
         self.ui_name,
         self.item_name,
         self.always_use_item_name_in_ui,
-
         self.deck_capacity,
         self.should_shuffle,
-
         self.cd_frames,
         self.rt_frames,
-
         self.spells_per_cast,
-
         self.mana_max,
         self.mana_chrg_spd_secs,
-
         self.spread_degrees,
         self.proj_spd_multiplier
-    })
+    }
+    
+    local parts = {}
+    for i, val in ipairs(fields) do
+        if type(val) == "string" then
+            table.insert(parts, "`" .. val .. "`")
+        else
+            table.insert(parts, tostring(val))
+        end
+    end
+    return table.concat(parts, " ")
 end
 
 return M

@@ -317,6 +317,30 @@ function M.render_stat_presets(imgui)
                     cat_key, val_key
                 )
             )
+        end,
+        
+        on_duplicate_proc = function(ckv_map, cat_key, val_key)
+            ckv_map:duplicate(cat_key, val_key)
+
+            wand_stat_presets_req_save = true
+
+            logger.info(
+                ("Duplicated wand attributes preset from category '%s' of name '%s'"):format(
+                    cat_key, val_key
+                )
+            )
+        end,
+
+        delete_item_popup_action = function(ckv_map, cat_key, val_key)
+            ckv_map:remove_value(cat_key, val_key)
+
+            wand_stat_presets_req_save = true
+
+            logger.info(
+                ("Removed wand attribute preset from category '%s' of name '%s'"):format(
+                    cat_key, val_key
+                )
+            )
         end
     })
 end

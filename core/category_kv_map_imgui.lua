@@ -14,8 +14,10 @@ local delete_popup_action = nil
 function M.render(imgui, ckv_map, actions)
     local req_save = false
 
-    local on_edit_proc             = actions.on_edit_proc or nil
-    local on_duplicate_proc        = actions.on_duplicate_proc or nil
+    local on_edit_proc      = actions.on_edit_proc or nil
+    local on_move_proc      = actions.on_move_proc or nil
+    local on_duplicate_proc = actions.on_duplicate_proc or nil
+
     local delete_item_popup_action = actions.delete_item_popup_action or nil
     -- local _
     --
