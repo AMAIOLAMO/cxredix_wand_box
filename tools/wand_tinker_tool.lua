@@ -341,6 +341,26 @@ function M.render_stat_presets(imgui)
                     cat_key, val_key
                 )
             )
+        end,
+
+        on_delete_all_items_in_category_action = function(ckv_map, opened_cat_key)
+            wand_stat_presets_req_save = true
+
+            logger.info(
+                ("Deleted all items in category '%s'"):format(
+                    opened_cat_key
+                )
+            )
+        end,
+
+        on_delete_entire_category_action = function(ckv_map, opened_cat_key)
+            wand_stat_presets_req_save = true
+
+            logger.info(
+                ("Deleted the entire category '%s'"):format(
+                    opened_cat_key
+                )
+            )
         end
     })
 end

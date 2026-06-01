@@ -12,49 +12,23 @@ local delete_popup_msg = "__NO_MSG__ OH NO!"
 local delete_popup_action = nil
 
 function M.render(imgui, ckv_map, actions)
-    local req_save = false
-
     local on_edit_proc      = actions.on_edit_proc or nil
     local on_move_proc      = actions.on_move_proc or nil
     local on_duplicate_proc = actions.on_duplicate_proc or nil
 
     local delete_item_popup_action = actions.delete_item_popup_action or nil
-    -- local _
-    --
-    -- imgui.Text("Save Category")
-    -- imgui.SameLine()
-    -- _, storage_box_save_category = imgui.InputText(
-    --     "##SaveCategory", storage_box_save_category
-    -- )
-    --
-    -- imgui.Text("Save Name")
-    -- imgui.SameLine()
-    -- _, storage_box_save_name = imgui.InputText(
-    --     "##SaveName", storage_box_save_name
-    -- )
-    --
-    -- if imgui.Button("Save to Storage Box") then
-    --     wand_storage_box:set(
-    --         storage_box_save_category, storage_box_save_name,
-    --         loader_state.actions_str
-    --     )
-    --
-    --     req_save_storage_box = true
-    --
-    --     logger.info(
-    --         "Save complete"
-    --     )
-    -- end
-    --
-    -- imgui.Separator()
-    --
+
+    local on_delete_all_items_in_category_action = actions.on_delete_all_items_in_category_action or nil
+    local on_delete_entire_category_action = actions.on_delete_entire_category_action or nil
+
+
     if ckv_map:is_empty() then
         imgui.BulletText(
             "This is Empty :(, Save something to see them here!"
         )
-
-        return req_save
     end
+
+    local opened_category_tab_key = nil
 
     -- Render Category KV Map
     if imgui.BeginTabBar("CategoryKVMap") then
@@ -150,28 +124,25 @@ function M.render(imgui, ckv_map, actions)
         imgui.EndTabBar()
     end
 
-    -- if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete All Items In Category") then
-    --     ckv_map:remove_all_values_from_category(opened_category_tab_key)
-    --
-    --     req_save_storage_box = true
-    --
-    --     logger.info(
-    --         ("Removed all items from category '%s'"):format(opened_category_tab_key)
-    --     )
-    -- end
-    --
-    -- imgui.SameLine()
-    -- if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete Entire Category") then
-    --     ckv_map:remove_category(opened_category_tab_key)
-    --
-    --     req_save_storage_box = true
-    --
-    --     logger.info(
-    --         ("Removed category '%s'"):format(opened_category_tab_key)
-    --     )
-    -- end
 
-    return req_save
+    if imgui.CollapsingHeader("===[UNSAFE AREA]===") then
+        if opened_category_tab_key and imgui_utils.cautious_button(imgui, "Delete All Items In Category") then
+            ckv_map:remove_all_values_from_category(opened_category_tab_key)
+
+            if on_delete_all_items_in_category_action then
+                on_delete_all_items_in_category_action(ckv_map, opened_category_tab_key)
+            end
+        end
+
+        imgui.SameLine()
+        if opened_category_tab_key and imgui_utils.cautious_button(imgui, "Delete Entire Category") then
+            ckv_map:remove_category(opened_category_tab_key)
+
+            if on_delete_entire_category_action then
+                on_delete_entire_category_action(ckv_map, opened_category_tab_key)
+            end
+        end
+    end
 end
 
 return M

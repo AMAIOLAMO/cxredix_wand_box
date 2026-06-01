@@ -26,6 +26,9 @@ local logger = dofile_once(core_path .. "logger.lua")
 --- @module "core.category_kv_map"
 local WandStorageBox = dofile_once(core_path .. "category_kv_map.lua")
 
+--- @module "core.category_kv_map_imgui"
+local CategoryKVMapImgui = dofile_once(core_path .. "category_kv_map_imgui.lua")
+
 local M = {
     name = "Wand Loader",
     is_open = true
@@ -431,6 +434,7 @@ function M.render_wand_storage_box(imgui, loader_state)
         return
     end
 
+    -- TODO: obsolete, replace with CategoryKVMap imgui
     -- Render Storage Box
     if imgui.BeginTabBar("Wand Storage Box") then
         local storage_all = wand_storage_box:get_all()
@@ -472,13 +476,7 @@ function M.render_wand_storage_box(imgui, loader_state)
                         if imgui.SmallButton("Duplicate") then
                             req_save_storage_box = true
 
-                            local new_key = val_key
-
-                            while wand_storage_box:has_value(cat_key, new_key) do
-                                new_key = new_key .. "_COPY"
-                            end
-
-                            wand_storage_box:set(cat_key, new_key, val_str)
+                            local new_key = wand_storage_box:duplicate(cat_key, val_key)
 
                             logger.info(
                                 ("Copied '%s' to '%s'"):format(val_key, new_key)
