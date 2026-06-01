@@ -6,7 +6,7 @@ M.__index = M
 local string_gmatch = string.gmatch
 local string_format = string.format
 local table_concat = table.concat
-local pairs, setmetatable, assert, type = pairs, setmetatable, assert, type
+local pairs, setmetatable, type = pairs, setmetatable, type
 
 -- format -> Category:Key 'Value'
 local fmt_pattern = "([%w_][%w%-_]*):([%w_][%w%-_]*)%s*'([^']*)'"
@@ -37,20 +37,35 @@ function M:is_empty()
 end
 
 function M:get(category, key)
-    assert(type(category) == "string", "Category is required to be a string")
-    assert(type(key) == "string", "Key is required to be a string")
-
     local cat_tbl = self.category_kv_map[category]
     return cat_tbl and cat_tbl[key] or nil
 end
 
 function M:set(category, key, value)
-    assert(type(category) == "string", "Category is required to be a string")
-    assert(type(key) == "string", "Key is required to be a string")
-    assert(type(value) == "string", "Value is required to be a string")
-
     self.category_kv_map[category] = self.category_kv_map[category] or {}
     self.category_kv_map[category][key] = value
+end
+
+function M:duplicate(category, key)
+    local new_key = key
+
+    while self:has_value(category, new_key) do
+        new_key = new_key .. "_COPY"
+    end
+
+    self:set(
+        category, new_key,
+        self:get(category, key)
+    )
+
+    return new_key
+end
+
+function M:move_value_to(category_from, key_from, category_to, key_to)
+    local value = self:get(category_from, key_from)
+    self:remove_value(category_from, key_from)
+
+    self:set(category_to, key_to, value)
 end
 
 function M:has_category(category)
@@ -84,7 +99,6 @@ function M:remove_all_values_from_category(category)
 end
 
 function M:get_all_from_category(category)
-    assert(type(category) == "string", "Category is required")
     return self.category_kv_map[category] or {}
 end
 

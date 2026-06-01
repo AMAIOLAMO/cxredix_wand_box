@@ -1,4 +1,4 @@
-local WandStorageBox = require("core.category_kv_map")
+local CategoryKVMap = require("core.category_kv_map")
 
 -- Load strict format data
 local raw = [[
@@ -9,10 +9,10 @@ local raw = [[
     Other:B 'BCD'
 ]]
 
-local w = WandStorageBox.load(raw)
+local w = CategoryKVMap.load(raw)
 assert(w:is_empty() == false)
 
-local w_empty = WandStorageBox.load("")
+local w_empty = CategoryKVMap.load("")
 assert(w_empty:is_empty() == true)
 
 assert(w:has_value("Any", "Test") == true)
@@ -74,7 +74,7 @@ for ct_key, ct in pairs(all_data) do
 end
 
 -- Round Trip serialization & loading :)
-local w2 = WandStorageBox.load(w:serialize())
+local w2 = CategoryKVMap.load(w:serialize())
 
 local ws2_all = w2:get_all()
 
@@ -99,6 +99,52 @@ w:remove_all_values_from_category("Other")
 
 assert(w:has_value("Other", "B") == false)
 assert(w:has_value("Other", "A") == false)
+
+
+-- moving from one category to the next
+
+local w_move = CategoryKVMap.load(
+    [[
+        A:B 'test'
+        C:G 'Another'
+    ]]
+)
+
+assert(w_move:get("C", "G") == 'Another')
+
+w_move:move_value_to(
+    "C", "G",
+    "A", "H"
+)
+
+assert(w_move:has_value("C", "G") == false)
+
+assert(w_move:get("A", "H") == "Another")
+
+
+-- override
+assert(w_move:get("A", "B") == "test")
+
+w_move:move_value_to(
+    "A", "H",
+    "A", "B"
+)
+
+assert(w_move:get("A", "B") == "Another")
+
+-- duplicate
+
+local w_dupe = CategoryKVMap.load(
+    [[
+        A:B 'dupe_this'
+    ]]
+)
+
+local new_key_name = w_dupe:duplicate("A", "B")
+
+assert(w_dupe:get("A", "B") == "dupe_this")
+
+assert(w_dupe:get("A", new_key_name) == "dupe_this")
 
 
 print("Complete")
