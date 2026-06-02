@@ -14,6 +14,8 @@ M.__index = M
 local target_move_category = "Any"
 local target_move_name = "__NAME__"
 
+-- local import_string = ""
+
 
 function M.render(imgui, ckv_map, actions)
 
@@ -165,13 +167,39 @@ function M.render(imgui, ckv_map, actions)
     end
 
 
-    if imgui.Button("Export Everthing to Clipboard") then
+    if imgui.Button("Export to Clipboard") then
         imgui.SetClipboardText(ckv_map:serialize())
 
         if on_clipboard_text_exported then
             on_clipboard_text_exported()
         end
     end
+
+    -- TODO: implement ckv_map importing before implementing this
+    -- if imgui.Button("Import from Text Box") then
+    --     import_string = ""
+    --
+    --     imgui.OpenPopup("import_from_textbox_popup")
+    -- end
+    --
+    -- if imgui.BeginPopup("import_from_textbox_popup") then
+    --     imgui.Text("Put your exported string below!")
+    --
+    --     local _
+    --
+    --     _, import_string = imgui.InputTextMultiline(
+    --         "##ImportStringTextInput", import_string,
+    --         -5 * 3, 5 * 20 -- hardcoded size and line height
+    --     )
+    --
+    --     imgui.Text("NOTE: Importing may override everything, are you sure?")
+    --
+    --     if imgui_utils.cautious_small_button(imgui, "Yes") then
+    --     end
+    --
+    --     imgui.EndPopup()
+    -- end
+
 
     if imgui.CollapsingHeader("===[UNSAFE AREA]===") then
         if opened_category_tab_key and imgui_utils.cautious_button(imgui, "Delete All Items In Category") then

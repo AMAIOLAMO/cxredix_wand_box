@@ -29,6 +29,9 @@ local WandStorageBox = dofile_once(core_path .. "category_kv_map.lua")
 --- @module "core.category_kv_map_imgui"
 local CategoryKVMapImgui = dofile_once(core_path .. "category_kv_map_imgui.lua")
 
+--- @module "core.imgui_utils"
+local imgui_utils = dofile_once(core_path .. "imgui_utils.lua")
+
 local M = {
     name = "Wand Loader",
     is_open = true
@@ -49,19 +52,6 @@ local storage_box_save_name = "MyCoolWand"
 local storage_box_save_category = "Any"
 
 local req_save_storage_box = false
-
--- TODO: obsolete, use core.imgui_utils.cautious_button instead
-local function imgui_cautious_btn(imgui, id)
-    imgui.PushStyleColor(imgui.Col.Button, 0.8, 0.45, 0.45)
-    imgui.PushStyleColor(imgui.Col.ButtonHovered, 1, 0.6, 0.6)
-    imgui.PushStyleColor(imgui.Col.ButtonActive, 0.7, 0.45, 0.45)
-
-    local ret_value = imgui.SmallButton(id)
-
-    imgui.PopStyleColor(3)
-
-    return ret_value
-end
 
 local wand_storage_box_globals_key = "cx_wndbx_storage_box"
 
@@ -249,7 +239,7 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
             end
 
             imgui.SameLine()
-            if imgui_cautious_btn(imgui, "Clear") then
+            if imgui_utils.cautious_button(imgui, "Clear") then
                 loader_state.actions_str = ''
             end
         end
@@ -329,12 +319,6 @@ function M.render_window(imgui, wndbx_state)
         imgui.EndTabBar()
     end
 
-
-    -- if wand_storage_box then
-    --     imgui.Separator()
-    --
-    --     M.render_wand_storage_box(imgui)
-    -- end
 end
 
 function M.begin_wand_direct_sync(player_id, actions_str, loader_state)
