@@ -458,8 +458,6 @@ function M.render_wand_storage_box(imgui, loader_state)
             end,
 
             on_item_deleted = function(ckv_map, cat_key, val_key)
-                ckv_map:remove_value(cat_key, val_key)
-
                 req_save_storage_box = true
 
                 logger.info(

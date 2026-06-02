@@ -30,6 +30,8 @@ function M.render(imgui, ckv_map, actions)
     local on_all_items_in_category_deleted = actions.on_all_items_in_category_deleted or nil
     local on_entire_category_deleted       = actions.on_entire_category_deleted or nil
 
+    local on_clipboard_text_exported = actions.on_clipboard_text_exported or nil
+
 
     if ckv_map:is_empty() then
         imgui.BulletText(
@@ -80,6 +82,8 @@ function M.render(imgui, ckv_map, actions)
                             end
                         end
 
+                        -- TODO: refactor this so that all the tools that use this
+                        -- does not require implementing this directly 
                         imgui.SameLine()
                         if imgui.SmallButton("Duplicate") then
                             if on_item_duplicated ~= nil then
@@ -121,6 +125,8 @@ function M.render(imgui, ckv_map, actions)
                             imgui.EndPopup()
                         end
 
+                        -- TODO: refactor this so that all the tools that use this
+                        -- does not require implementing this directly 
                         imgui.SameLine()
                         if imgui_utils.cautious_button(imgui, "-") then
                             imgui.OpenPopup("delete_confirm_popup")
@@ -158,6 +164,14 @@ function M.render(imgui, ckv_map, actions)
         imgui.EndTabBar()
     end
 
+
+    if imgui.Button("Export Everthing to Clipboard") then
+        imgui.SetClipboardText(ckv_map:serialize())
+
+        if on_clipboard_text_exported then
+            on_clipboard_text_exported()
+        end
+    end
 
     if imgui.CollapsingHeader("===[UNSAFE AREA]===") then
         if opened_category_tab_key and imgui_utils.cautious_button(imgui, "Delete All Items In Category") then
@@ -210,7 +224,6 @@ function M.render(imgui, ckv_map, actions)
 
             imgui.EndPopup()
         end
-
 
     end
 end

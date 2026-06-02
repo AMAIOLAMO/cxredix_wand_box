@@ -343,8 +343,6 @@ function M.render_stat_presets(imgui)
         end,
 
         on_item_deleted = function(ckv_map, cat_key, val_key)
-            ckv_map:remove_value(cat_key, val_key)
-
             wand_stat_presets_req_save = true
 
             logger.info(
