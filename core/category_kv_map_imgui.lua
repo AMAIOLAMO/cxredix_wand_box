@@ -166,6 +166,8 @@ function M.render(imgui, ckv_map, actions)
                     on_delete_entire_category_action(ckv_map, opened_category_tab_key)
                 end
             end
+
+            imgui.EndPopup()
         end
 
 

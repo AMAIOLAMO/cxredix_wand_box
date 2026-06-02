@@ -426,135 +426,192 @@ function M.render_wand_storage_box(imgui, loader_state)
 
     imgui.Separator()
 
-    if wand_storage_box:is_empty() then
-        imgui.BulletText(
-            "Your Storage Box Is Empty :(, Save some wands to see them here!"
-        )
+    CategoryKVMapImgui.render(
+        imgui, wand_storage_box,{
+            on_edit_proc = function(ckv_map, cat_key, val_key)
+                loader_state.actions_str = val_str
 
-        return
-    end
+                logger.info(
+                    ("Loaded actions from category '%s' of name '%s'"):format(
+                        cat_key, val_key
+                    )
+                )
+            end,
+
+            on_duplicate_proc = function(ckv_map, cat_key, val_key)
+                ckv_map:duplicate(cat_key, val_key)
+
+                req_save_storage_box = true
+
+                logger.info(
+                    ("Duplicated actions from category '%s' of name '%s'"):format(
+                        cat_key, val_key
+                    )
+                )
+            end,
+
+            delete_item_popup_action = function(ckv_map, cat_key, val_key)
+                ckv_map:remove_value(cat_key, val_key)
+
+                req_save_storage_box = true
+
+                logger.info(
+                    ("Removed actions from category '%s' of name '%s'"):format(
+                        cat_key, val_key
+                    )
+                )
+            end,
+
+            on_delete_all_items_in_category_action = function(ckv_map, opened_cat_key)
+                req_save_storage_box = true
+
+                logger.info(
+                    ("Deleted all items in category '%s'"):format(
+                        opened_cat_key
+                    )
+                )
+            end,
+
+            on_delete_entire_category_action = function(ckv_map, opened_cat_key)
+                req_save_storage_box = true
+
+                logger.info(
+                    ("Deleted the entire category '%s'"):format(
+                        opened_cat_key
+                    )
+                )
+            end
+        })
+
+    -- if wand_storage_box:is_empty() then
+    --     imgui.BulletText(
+    --         "Your Storage Box Is Empty :(, Save some wands to see them here!"
+    --     )
+    --
+    --     return
+    -- end
 
     -- TODO: obsolete, replace with CategoryKVMap imgui
     -- Render Storage Box
-    if imgui.BeginTabBar("Wand Storage Box") then
-        local storage_all = wand_storage_box:get_all()
-
-        for cat_key, cat in pairs(storage_all) do
-            imgui.PushID("##" .. cat_key)
-
-            if imgui.BeginTabItem(string.format("%s", cat_key)) then
-                local tbl_flags = bit.bor(
-                    imgui.TableFlags.Resizable,
-                    imgui.TableFlags.Hideable,
-                    imgui.TableFlags.RowBg
-                )
-
-                local col_count = 2
-
-                opened_category_tab_key = cat_key
-
-                if imgui.BeginTable("##Table_" .. cat_key, col_count, tbl_flags) then
-                    imgui.TableSetupColumn("Name")
-                    imgui.TableSetupColumn("Action", imgui.TableColumnFlags.WidthFixed)
-                    imgui.TableHeadersRow()
-
-                    for val_key, val_str in pairs(cat) do
-                        imgui.PushID("##" .. val_key)
-
-                        -- Name Column
-                        imgui.TableNextColumn()
-                        imgui.BulletText(val_key)
-
-                        -- Action Column
-                        imgui.TableNextColumn()
-                        if imgui.SmallButton("Edit") then
-                            loader_state.actions_str = val_str
-                            logger.info("copy edit complete")
-                        end
-
-                        imgui.SameLine()
-                        if imgui.SmallButton("Duplicate") then
-                            req_save_storage_box = true
-
-                            local new_key = wand_storage_box:duplicate(cat_key, val_key)
-
-                            logger.info(
-                                ("Copied '%s' to '%s'"):format(val_key, new_key)
-                            )
-                        end
-
-                        imgui.SameLine()
-                        if imgui.SmallButton("Move") then
-                            req_save_storage_box = true
-                            logger.info("NOT IMPLEMENTED YET :)")
-                        end
-
-                        imgui.SameLine()
-                        if imgui_cautious_btn(imgui, "-") then
-                            delete_popup_msg = "Do you really want to delete this item?"
-
-                            delete_popup_action = function()
-                                wand_storage_box:remove_value(cat_key, val_key)
-                                req_save_storage_box = true
-
-                                logger.info(
-                                    ("Deleted '%s' from category '%s'").format(val_key, cat_key)
-                                )
-                            end
-
-                            imgui.OpenPopup("delete_confirm_popup")
-                        end
-
-
-                        if imgui.BeginPopup("delete_confirm_popup") then
-                            imgui.Text(delete_popup_msg)
-
-                            imgui.Text("Click anywhere else to cancel")
-
-                            if imgui.Button("Yes") then
-                                delete_popup_action()
-                            end
-
-                            imgui.EndPopup()
-                        end
-
-                        imgui.PopID()
-                    end
-
-                    imgui.EndTable()
-                end
-
-
-                imgui.EndTabItem()
-            end
-
-            imgui.PopID()
-        end
-
-        imgui.EndTabBar()
-    end
-
-    if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete All Items In Category") then
-        wand_storage_box:remove_all_values_from_category(opened_category_tab_key)
-
-        req_save_storage_box = true
-
-        logger.info(
-            ("Removed all items from category '%s'"):format(opened_category_tab_key)
-        )
-    end
-
-    imgui.SameLine()
-    if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete Entire Category") then
-        wand_storage_box:remove_category(opened_category_tab_key)
-
-        req_save_storage_box = true
-
-        logger.info(
-            ("Removed category '%s'"):format(opened_category_tab_key)
-        )
-    end
-
+    -- if imgui.BeginTabBar("Wand Storage Box") then
+    --     local storage_all = wand_storage_box:get_all()
+    --
+    --     for cat_key, cat in pairs(storage_all) do
+    --         imgui.PushID("##" .. cat_key)
+    --
+    --         if imgui.BeginTabItem(string.format("%s", cat_key)) then
+    --             local tbl_flags = bit.bor(
+    --                 imgui.TableFlags.Resizable,
+    --                 imgui.TableFlags.Hideable,
+    --                 imgui.TableFlags.RowBg
+    --             )
+    --
+    --             local col_count = 2
+    --
+    --             opened_category_tab_key = cat_key
+    --
+    --             if imgui.BeginTable("##Table_" .. cat_key, col_count, tbl_flags) then
+    --                 imgui.TableSetupColumn("Name")
+    --                 imgui.TableSetupColumn("Action", imgui.TableColumnFlags.WidthFixed)
+    --                 imgui.TableHeadersRow()
+    --
+    --                 for val_key, val_str in pairs(cat) do
+    --                     imgui.PushID("##" .. val_key)
+    --
+    --                     -- Name Column
+    --                     imgui.TableNextColumn()
+    --                     imgui.BulletText(val_key)
+    --
+    --                     -- Action Column
+    --                     imgui.TableNextColumn()
+    --                     if imgui.SmallButton("Edit") then
+    --                         loader_state.actions_str = val_str
+    --                         logger.info("copy edit complete")
+    --                     end
+    --
+    --                     imgui.SameLine()
+    --                     if imgui.SmallButton("Duplicate") then
+    --                         req_save_storage_box = true
+    --
+    --                         local new_key = wand_storage_box:duplicate(cat_key, val_key)
+    --
+    --                         logger.info(
+    --                             ("Copied '%s' to '%s'"):format(val_key, new_key)
+    --                         )
+    --                     end
+    --
+    --                     imgui.SameLine()
+    --                     if imgui.SmallButton("Move") then
+    --                         req_save_storage_box = true
+    --                         logger.info("NOT IMPLEMENTED YET :)")
+    --                     end
+    --
+    --                     imgui.SameLine()
+    --                     if imgui_cautious_btn(imgui, "-") then
+    --                         delete_popup_msg = "Do you really want to delete this item?"
+    --
+    --                         delete_popup_action = function()
+    --                             wand_storage_box:remove_value(cat_key, val_key)
+    --                             req_save_storage_box = true
+    --
+    --                             logger.info(
+    --                                 ("Deleted '%s' from category '%s'").format(val_key, cat_key)
+    --                             )
+    --                         end
+    --
+    --                         imgui.OpenPopup("delete_confirm_popup")
+    --                     end
+    --
+    --
+    --                     if imgui.BeginPopup("delete_confirm_popup") then
+    --                         imgui.Text(delete_popup_msg)
+    --
+    --                         imgui.Text("Click anywhere else to cancel")
+    --
+    --                         if imgui.Button("Yes") then
+    --                             delete_popup_action()
+    --                         end
+    --
+    --                         imgui.EndPopup()
+    --                     end
+    --
+    --                     imgui.PopID()
+    --                 end
+    --
+    --                 imgui.EndTable()
+    --             end
+    --
+    --
+    --             imgui.EndTabItem()
+    --         end
+    --
+    --         imgui.PopID()
+    --     end
+    --
+    --     imgui.EndTabBar()
+    -- end
+    --
+    -- if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete All Items In Category") then
+    --     wand_storage_box:remove_all_values_from_category(opened_category_tab_key)
+    --
+    --     req_save_storage_box = true
+    --
+    --     logger.info(
+    --         ("Removed all items from category '%s'"):format(opened_category_tab_key)
+    --     )
+    -- end
+    --
+    -- imgui.SameLine()
+    -- if opened_category_tab_key and imgui_cautious_btn(imgui, "Delete Entire Category") then
+    --     wand_storage_box:remove_category(opened_category_tab_key)
+    --
+    --     req_save_storage_box = true
+    --
+    --     logger.info(
+    --         ("Removed category '%s'"):format(opened_category_tab_key)
+    --     )
+    -- end
+    --
 
 end
 
