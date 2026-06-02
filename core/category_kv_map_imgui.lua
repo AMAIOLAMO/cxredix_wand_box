@@ -6,11 +6,22 @@ local imgui_utils = dofile_once(core_path .. "imgui_utils.lua")
 
 
 --- @class core.category_kv_map_imgui
-local M = {}
+local M = {
+    actions = {}
+}
+M.__index = M
+
+local target_move_category = "Any"
+local target_move_name = "__NAME__"
+
 
 function M.render(imgui, ckv_map, actions)
+
+    -- TODO: inconsistent usecase, except the edit_proc, we should let the others be simply just
+    -- a finished callback
+
     local on_edit_proc      = actions.on_edit_proc or nil
-    local on_move_proc      = actions.on_move_proc or nil
+    local on_moved_proc     = actions.on_moved_proc or nil
     local on_duplicate_proc = actions.on_duplicate_proc or nil
 
     local delete_item_popup_action = actions.delete_item_popup_action or nil
@@ -77,9 +88,36 @@ function M.render(imgui, ckv_map, actions)
 
                         imgui.SameLine()
                         if imgui.SmallButton("Move") then
-                            if on_move_proc ~= nil then
-                                on_move_proc(ckv_map, cat_key, val_key)
+                            target_move_name = val_key
+
+                            imgui.OpenPopup("move_item_popup")
+                        end
+
+                        if imgui.BeginPopup("move_item_popup") then
+                            local _
+                            _, target_move_category = imgui.InputText(
+                                "Target Category", target_move_category
+                            )
+                            
+                            _, target_move_name = imgui.InputText(
+                                "Target Name", target_move_name
+                            )
+
+                            if imgui.Button("Move") then
+                                ckv_map:move_value_to(
+                                    cat_key, val_key, target_move_category, target_move_name
+                                )
+
+                                if on_moved_proc then
+                                    on_moved_proc(
+                                        ckv_map,
+                                        cat_key, val_key,
+                                        target_move_category, target_move_name
+                                    )
+                                end
                             end
+
+                            imgui.EndPopup()
                         end
 
                         imgui.SameLine()
