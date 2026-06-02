@@ -27,7 +27,7 @@ local CategoryKVMap = dofile_once(core_path .. "category_kv_map.lua")
 local CategoryKVMapImgui = dofile_once(core_path .. "category_kv_map_imgui.lua")
 
 
---- @class wand_tinker_tool
+--- @class tools.wand_tinker_tool
 local M = {
     name = "Wand Tinker",
     is_open = false

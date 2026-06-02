@@ -14,7 +14,7 @@ local logger = dofile_once(core_path .. "logger.lua")
 --- @module "core.wand_attributes"
 local WandAttribs = dofile_once(core_path .. "wand_attributes.lua")
 
---- @class wand_helper_tool
+--- @class tools.wand_helper_tool
 local M = {
     name = "Wand Helper",
     is_open = false

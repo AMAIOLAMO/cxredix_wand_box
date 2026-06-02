@@ -32,6 +32,7 @@ local CategoryKVMapImgui = dofile_once(core_path .. "category_kv_map_imgui.lua")
 --- @module "core.imgui_utils"
 local imgui_utils = dofile_once(core_path .. "imgui_utils.lua")
 
+--- @class tools.wand_loader_tool
 local M = {
     name = "Wand Loader",
     is_open = true
