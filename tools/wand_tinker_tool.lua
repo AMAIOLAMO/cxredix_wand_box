@@ -307,7 +307,7 @@ function M.render_stat_presets(imgui)
     end
 
     CategoryKVMapImgui.render(imgui, wand_stat_presets, {
-        on_edit_proc = function(ckv_map, cat_key, val_key)
+        item_edit_action = function(ckv_map, cat_key, val_key)
             wnd_attribs = WandAttribs.load(
                 ckv_map:get(cat_key, val_key)
             )
@@ -318,8 +318,19 @@ function M.render_stat_presets(imgui)
                 )
             )
         end,
+
+        on_item_moved = function(ckv_map, from_cat_key, from_val_key, to_cat_key, to_val_key)
+            wand_stat_presets_req_save = true
+
+            logger.info(
+                ("Moved wand attributes preset from category '%s' of name '%s' to category '%s' of name '%s'"):format(
+                    from_cat_key, from_val_key, to_cat_key, to_val_key
+                )
+            )
+        end,
+
         
-        on_duplicate_proc = function(ckv_map, cat_key, val_key)
+        on_item_duplicated = function(ckv_map, cat_key, val_key)
             ckv_map:duplicate(cat_key, val_key)
 
             wand_stat_presets_req_save = true
@@ -331,7 +342,7 @@ function M.render_stat_presets(imgui)
             )
         end,
 
-        delete_item_popup_action = function(ckv_map, cat_key, val_key)
+        on_item_deleted = function(ckv_map, cat_key, val_key)
             ckv_map:remove_value(cat_key, val_key)
 
             wand_stat_presets_req_save = true
@@ -343,7 +354,7 @@ function M.render_stat_presets(imgui)
             )
         end,
 
-        on_delete_all_items_in_category_action = function(ckv_map, opened_cat_key)
+        on_all_items_in_category_deleted = function(ckv_map, opened_cat_key)
             wand_stat_presets_req_save = true
 
             logger.info(
@@ -353,7 +364,7 @@ function M.render_stat_presets(imgui)
             )
         end,
 
-        on_delete_entire_category_action = function(ckv_map, opened_cat_key)
+        on_entire_category_deleted = function(ckv_map, opened_cat_key)
             wand_stat_presets_req_save = true
 
             logger.info(

@@ -48,9 +48,6 @@ local wand_storage_box = nil
 local storage_box_save_name = "MyCoolWand"
 local storage_box_save_category = "Any"
 
-local delete_popup_msg = "EMPTY_MSG :O Oh no!"
-local delete_popup_action = nil
-
 local req_save_storage_box = false
 
 -- TODO: obsolete, use core.imgui_utils.cautious_button instead
@@ -428,51 +425,61 @@ function M.render_wand_storage_box(imgui, loader_state)
 
     CategoryKVMapImgui.render(
         imgui, wand_storage_box, {
-            on_edit_proc = function(ckv_map, cat_key, val_key)
+            item_edit_action = function(ckv_map, cat_key, val_key)
                 loader_state.actions_str = ckv_map:get(cat_key, val_key)
 
                 logger.info(
-                    ("Loaded actions from category '%s' of name '%s'"):format(
+                    ("Loaded spells from category '%s' of name '%s'"):format(
                         cat_key, val_key
                     )
                 )
             end,
 
-            on_duplicate_proc = function(ckv_map, cat_key, val_key)
+            on_item_moved = function(ckv_map, from_cat_key, from_val_key, to_cat_key, to_val_key)
+                req_save_storage_box = true
+
+                logger.info(
+                    ("Moved spells from category '%s' of name '%s' to category '%s' of name '%s'"):format(
+                        from_cat_key, from_val_key, to_cat_key, to_val_key
+                    )
+                )
+            end,
+
+            on_item_duplicated = function(ckv_map, cat_key, val_key)
                 ckv_map:duplicate(cat_key, val_key)
 
                 req_save_storage_box = true
 
                 logger.info(
-                    ("Duplicated actions from category '%s' of name '%s'"):format(
+                    ("Duplicated spells from category '%s' of name '%s'"):format(
                         cat_key, val_key
                     )
                 )
             end,
 
-            delete_item_popup_action = function(ckv_map, cat_key, val_key)
+            on_item_deleted = function(ckv_map, cat_key, val_key)
                 ckv_map:remove_value(cat_key, val_key)
 
                 req_save_storage_box = true
 
                 logger.info(
-                    ("Removed actions from category '%s' of name '%s'"):format(
+                    ("Removed spells from category '%s' of name '%s'"):format(
                         cat_key, val_key
                     )
                 )
             end,
 
-            on_delete_all_items_in_category_action = function(ckv_map, opened_cat_key)
+            on_all_items_in_category_deleted = function(ckv_map, opened_cat_key)
                 req_save_storage_box = true
 
                 logger.info(
-                    ("Deleted all items in category '%s'"):format(
+                    ("Deleted all spells in category '%s'"):format(
                         opened_cat_key
                     )
                 )
             end,
 
-            on_delete_entire_category_action = function(ckv_map, opened_cat_key)
+            on_entire_category_deleted = function(ckv_map, opened_cat_key)
                 req_save_storage_box = true
 
                 logger.info(

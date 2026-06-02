@@ -20,14 +20,15 @@ function M.render(imgui, ckv_map, actions)
     -- TODO: inconsistent usecase, except the edit_proc, we should let the others be simply just
     -- a finished callback
 
-    local on_edit_proc      = actions.on_edit_proc or nil
-    local on_moved_proc     = actions.on_moved_proc or nil
-    local on_duplicate_proc = actions.on_duplicate_proc or nil
+    local item_edit_action = actions.item_edit_action or nil
 
-    local delete_item_popup_action = actions.delete_item_popup_action or nil
+    local on_item_moved      = actions.on_item_moved or nil
+    local on_item_duplicated = actions.on_item_duplicated or nil
 
-    local on_delete_all_items_in_category_action = actions.on_delete_all_items_in_category_action or nil
-    local on_delete_entire_category_action       = actions.on_delete_entire_category_action or nil
+    local on_item_deleted = actions.on_item_deleted or nil
+
+    local on_all_items_in_category_deleted = actions.on_all_items_in_category_deleted or nil
+    local on_entire_category_deleted       = actions.on_entire_category_deleted or nil
 
 
     if ckv_map:is_empty() then
@@ -74,15 +75,15 @@ function M.render(imgui, ckv_map, actions)
                         imgui.TableNextColumn()
 
                         if imgui.SmallButton("Edit") then
-                            if on_edit_proc ~= nil then
-                                on_edit_proc(ckv_map, cat_key, val_key)
+                            if item_edit_action ~= nil then
+                                item_edit_action(ckv_map, cat_key, val_key)
                             end
                         end
 
                         imgui.SameLine()
                         if imgui.SmallButton("Duplicate") then
-                            if on_duplicate_proc ~= nil then
-                                on_duplicate_proc(ckv_map, cat_key, val_key)
+                            if on_item_duplicated ~= nil then
+                                on_item_duplicated(ckv_map, cat_key, val_key)
                             end
                         end
 
@@ -108,8 +109,8 @@ function M.render(imgui, ckv_map, actions)
                                     cat_key, val_key, target_move_category, target_move_name
                                 )
 
-                                if on_moved_proc then
-                                    on_moved_proc(
+                                if on_item_moved then
+                                    on_item_moved(
                                         ckv_map,
                                         cat_key, val_key,
                                         target_move_category, target_move_name
@@ -131,8 +132,10 @@ function M.render(imgui, ckv_map, actions)
                             imgui.Text("Click anywhere else to cancel")
 
                             if imgui_utils.cautious_small_button(imgui, "Yes") then
-                                if delete_item_popup_action ~= nil then
-                                    delete_item_popup_action(ckv_map, cat_key, val_key)
+                                ckv_map:remove_value(cat_key, val_key)
+
+                                if on_item_deleted ~= nil then
+                                    on_item_deleted(ckv_map, cat_key, val_key)
                                 end
                             end
 
@@ -173,8 +176,8 @@ function M.render(imgui, ckv_map, actions)
             if imgui_utils.cautious_small_button(imgui, "Yes") then
                 ckv_map:remove_all_values_from_category(opened_category_tab_key)
 
-                if on_delete_all_items_in_category_action then
-                    on_delete_all_items_in_category_action(ckv_map, opened_category_tab_key)
+                if on_all_items_in_category_deleted then
+                    on_all_items_in_category_deleted(ckv_map, opened_category_tab_key)
                 end
             end
 
@@ -200,8 +203,8 @@ function M.render(imgui, ckv_map, actions)
             if imgui_utils.cautious_small_button(imgui, "Yes") then
                 ckv_map:remove_category(opened_category_tab_key)
 
-                if on_delete_entire_category_action then
-                    on_delete_entire_category_action(ckv_map, opened_category_tab_key)
+                if on_entire_category_deleted then
+                    on_entire_category_deleted(ckv_map, opened_category_tab_key)
                 end
             end
 
