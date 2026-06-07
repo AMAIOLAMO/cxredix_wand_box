@@ -57,13 +57,15 @@ if load_imgui ~= nil then
 
     -- allow for multi player selection & multi wand selection
     local wndbx_state = {
-        picked_player_idx = 1
+        picked_player_idx = 1,
+        hide_all = false
     }
 
     local prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
     local dt_secs = 0
 
     function OnWorldPostUpdate()
+
         dt_secs = GameGetRealWorldTimeSinceStarted() - prev_frame_real_world_time
         prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
 
@@ -103,6 +105,11 @@ if load_imgui ~= nil then
             if imgui.BeginMenuBar() then
                 if imgui.BeginMenu("CxRedix's Wand Box") then
 
+                    local _
+                    _, wndbx_state.hide_all = imgui.MenuItem(
+                        "Hide All", "", wndbx_state.hide_all
+                    )
+
                     for _, tool in ipairs(tools) do
                         local _
                         _, tool.is_open = imgui.MenuItem(
@@ -126,7 +133,7 @@ if load_imgui ~= nil then
 
         -- tool render window
         for _, tool in ipairs(tools) do
-            if not tool.is_open then
+            if not tool.is_open or wndbx_state.hide_all then
                 goto continue
             end
 
@@ -146,6 +153,8 @@ if load_imgui ~= nil then
 
             ::continue::
         end
+
+
     end
 else
     local warn_notify_interval_frames = 60 * 4 -- every 4 seconds
