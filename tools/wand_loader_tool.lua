@@ -54,11 +54,11 @@ local storage_box_save_category = "Any"
 
 local req_save_storage_box = false
 
-local wand_storage_box_globals_key = "cx_wndbx_storage_box"
+local wand_storage_box_settings_key = "cxredix_wand_box.storage_box"
 
 
 function M.on_world_init()
-    wand_storage_box = WandStorageBox.load_from_globals(wand_storage_box_globals_key)
+    wand_storage_box = WandStorageBox.load_from_settings(wand_storage_box_settings_key)
 
     player_pick_marker_id = EntityLoad(root_path .. "vendor/entities/player_marker.xml")
 
@@ -89,7 +89,7 @@ function M.on_world_post_update(dt_secs, wndbx_state)
     if req_save_storage_box then
         req_save_storage_box = false
 
-        wand_storage_box:save_to_globals(wand_storage_box_globals_key)
+        wand_storage_box:save_to_settings(wand_storage_box_settings_key)
         logger.info("Action Detected, Saved Storage Box")
     end
 
@@ -199,6 +199,20 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
     --     end
     -- end
 
+    local held_wand_id = wand_utils.get_held_wand_id(player_id)
+
+    -- display copy string from held wand
+    if held_wand_id ~= nil then
+        if imgui.Button("Copy From Held Wand") then
+            local actions_str = wand_utils.wand_get_all_actions_as_actions_str(
+                held_wand_id
+            )
+
+            loader_state.actions_str = actions_str
+
+            logger.info("Copied action from held wand!")
+        end
+    end
 
 
     if imgui.CollapsingHeader("Wand Loading") then
@@ -206,6 +220,12 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
             imgui.BulletText(
                 "Type something into the Text Box above to start loading your great wands! :D"
             )
+
+        elseif held_wand_id == nil then
+            imgui.BulletText(
+                "Pick a wand first to load!"
+            )
+
         else
             local _
             _, loader_state.adapt_deck_size = imgui.Checkbox(
@@ -387,11 +407,16 @@ function M.render_wand_storage_box(imgui, loader_state)
         "##SaveCategory", storage_box_save_category
     )
 
+    storage_box_save_category = (storage_box_save_category:gsub(" ", ""))
+
+
     imgui.Text("Save Name")
     imgui.SameLine()
     _, storage_box_save_name = imgui.InputText(
         "##SaveName", storage_box_save_name
     )
+
+    storage_box_save_name = (storage_box_save_name:gsub(" ", ""))
 
     if imgui.Button("Save to Storage Box") then
         wand_storage_box:set(

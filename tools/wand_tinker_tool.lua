@@ -45,7 +45,7 @@ local wnd_attribs = WandAttribs.new_default()
 
 local should_limit_to_valid_values = true
 
-local wand_stat_presets_globals_key = "cx_wndbx_wand_stat_presets"
+local wand_stat_presets_settings_key = "cxredix_wand_box.wand_stat_presets"
 
 local wand_stat_presets = nil
 
@@ -55,8 +55,8 @@ local wand_stat_preset_save_name = "MyCoolStats"
 local wand_stat_presets_req_save = false
 
 function M.on_world_init()
-    wand_stat_presets = CategoryKVMap.load_from_globals(
-        wand_stat_presets_globals_key
+    wand_stat_presets = CategoryKVMap.load_from_settings(
+        wand_stat_presets_settings_key
     )
 end
 
@@ -64,7 +64,7 @@ function M.on_world_post_update()
     if wand_stat_presets_req_save then
         wand_stat_presets_req_save = false
     
-        wand_stat_presets:save_to_globals(wand_stat_presets_globals_key)
+        wand_stat_presets:save_to_settings(wand_stat_presets_settings_key)
         logger.info("Action Detected, Saved Wand Stat Presets")
     end
 end
@@ -266,7 +266,9 @@ function M.render_window(imgui, wndbx_state)
         logger.info("Wand attributes applied")
     end
 
-    if wand_stat_presets then
+    if wand_stat_presets and imgui.CollapsingHeader("Wand Stat Presets") then
+        imgui.Separator()
+
         M.render_stat_presets(imgui)
     end
 
@@ -281,11 +283,15 @@ function M.render_stat_presets(imgui)
         "##SaveCategory", wand_stat_preset_save_category
     )
 
+    wand_stat_preset_save_category = (wand_stat_preset_save_category:gsub(" ", ""))
+
     imgui.Text("Save Name")
     imgui.SameLine()
     _, wand_stat_preset_save_name = imgui.InputText(
         "##SaveName", wand_stat_preset_save_name
     )
+
+    wand_stat_preset_save_name = (wand_stat_preset_save_name:gsub(" ", ""))
 
     if imgui.Button("Save Preset") then
         wand_stat_presets:set(

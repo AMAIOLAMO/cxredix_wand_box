@@ -48,7 +48,6 @@ function OnWorldInitialized()
             tool.on_world_init()
         end
     end
-
 end
 
 -- use imgui when the function exists
@@ -107,7 +106,7 @@ if load_imgui ~= nil then
 
                     local _
                     _, wndbx_state.hide_all = imgui.MenuItem(
-                        "Hide All", "", wndbx_state.hide_all
+                        "Hide All", "CTRL+SHIFT+M", wndbx_state.hide_all
                     )
 
                     for _, tool in ipairs(tools) do

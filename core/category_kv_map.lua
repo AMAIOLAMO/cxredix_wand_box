@@ -24,8 +24,10 @@ function M.load(raw_strs)
     return setmetatable(obj, M)
 end
 
-function M.load_from_globals(globals_key)
-    return M.load(GlobalsGetValue(globals_key, ""))
+function M.load_from_settings(settings_key)
+    local str = ModSettingGet(settings_key) or ""
+
+    return M.load(str)
 end
 
 function M:is_empty()
@@ -120,8 +122,8 @@ function M:serialize()
     return table_concat(lines, "\n")
 end
 
-function M:save_to_globals(globals_key)
-    GlobalsSetValue(globals_key, self:serialize())
+function M:save_to_settings(settings_key)
+    ModSettingSet(settings_key, self:serialize())
 end
 
 return M

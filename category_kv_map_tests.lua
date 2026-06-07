@@ -2,11 +2,9 @@ local CategoryKVMap = require("core.category_kv_map")
 
 -- Load strict format data
 local raw = [[
-    Any:Test 'ABC, 1, 1; [G]: 1'
-    Any:Love 'I, Love, Noita'
+    Any:Test 'ABC, 1, 1; [G]: 1' Any:Love 'I, Love, Noita'
     
-    Other:A 'ABC'
-    Other:B 'BCD'
+    Other:A 'ABC' Other:B 'BCD'
 ]]
 
 local w = CategoryKVMap.load(raw)
@@ -145,6 +143,17 @@ local new_key_name = w_dupe:duplicate("A", "B")
 assert(w_dupe:get("A", "B") == "dupe_this")
 
 assert(w_dupe:get("A", new_key_name) == "dupe_this")
+
+
+local real_test = [[
+    Any:MyCoolStats '`Wand` `` false 26 false 10 10 1 100 100 0 1'
+    Any:Experiment Use '`Wand` `Experiment Stuff` false 26 false 10 10 1 999999 59999940 0 1'
+]]
+
+local wtest = CategoryKVMap.load(real_test)
+
+assert(wtest:has_value("Any", "MyCoolStats"))
+assert(wtest:has_value("Any", "Experiment Use"))
 
 
 print("Complete")
