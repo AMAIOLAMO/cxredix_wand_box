@@ -295,7 +295,20 @@ function M.render_stat_presets(imgui, picked_player_id, picked_wand_id)
 
     wand_stat_preset_save_name = (wand_stat_preset_save_name:gsub(" ", ""))
 
-    if imgui.Button("Save Preset") then
+    local preset_exists = wand_stat_presets:has_value(
+        wand_stat_preset_save_category,
+        wand_stat_preset_save_name
+    )
+
+    local save_preset_clicked = false
+
+    if preset_exists then
+        save_preset_clicked = imgui_utils.cautious_button(imgui, "Override Preset")
+    else
+        save_preset_clicked = imgui_utils.green_button(imgui, "Save New Preset")
+    end
+
+    if save_preset_clicked then
         wand_stat_presets:set(
             wand_stat_preset_save_category,
             wand_stat_preset_save_name,

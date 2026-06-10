@@ -419,7 +419,21 @@ function M.render_wand_storage_box(imgui, loader_state, player_id)
 
     storage_box_save_name = (storage_box_save_name:gsub(" ", ""))
 
-    if imgui.Button("Save to Storage Box") then
+    local storage_box_save_exists = wand_storage_box:has_value(
+        storage_box_save_category,
+        storage_box_save_name
+    )
+
+    local save_to_storage_box_clicked = false
+
+    if storage_box_save_exists then
+        save_to_storage_box_clicked = imgui_utils.cautious_button(imgui, "Override Actions")
+    else
+        save_to_storage_box_clicked = imgui_utils.green_button(imgui, "Save New Actions")
+    end
+
+
+    if save_to_storage_box_clicked then
         wand_storage_box:set(
             storage_box_save_category, storage_box_save_name,
             loader_state.actions_str
