@@ -26,6 +26,8 @@ local CategoryKVMap = dofile_once(core_path .. "category_kv_map.lua")
 --- @module "core.category_kv_map_imgui"
 local CategoryKVMapImgui = dofile_once(core_path .. "category_kv_map_imgui.lua")
 
+--- @module "core.imgui_utils"
+local imgui_utils = dofile_once(core_path .. "imgui_utils.lua")
 
 --- @class tools.wand_tinker_tool
 local M = {
@@ -269,12 +271,12 @@ function M.render_window(imgui, wndbx_state)
     if wand_stat_presets and imgui.CollapsingHeader("Wand Stat Presets") then
         imgui.Separator()
 
-        M.render_stat_presets(imgui)
+        M.render_stat_presets(imgui, picked_player_id, picked_wand_id)
     end
 
 end
 
-function M.render_stat_presets(imgui)
+function M.render_stat_presets(imgui, picked_player_id, picked_wand_id)
     local _
 
     imgui.Text("Save Category")
@@ -319,7 +321,7 @@ function M.render_stat_presets(imgui)
             )
 
             logger.info(
-                ("Loaded wand attributes from category '%s' of name '%s'"):format(
+                ("Editing wand attributes from category '%s' of name '%s'"):format(
                     cat_key, val_key
                 )
             )
@@ -377,7 +379,29 @@ function M.render_stat_presets(imgui)
                 )
             )
         end
-    })
+    },
+    function(imgui, ckv_map, cat_key, val_key)
+        if picked_wand_id ~= nil and imgui_utils.green_button(imgui, "Update to held wand") then
+            -- TODO: a merged duplicate with the load and edit above, maybe simplify this
+            wnd_attribs = WandAttribs.load(
+                ckv_map:get(cat_key, val_key)
+            )
+
+            logger.info(
+                ("Loaded wand attributes from category '%s' of name '%s'"):format(
+                    cat_key, val_key
+                )
+            )
+
+            wnd_attribs:apply_to(picked_wand_id)
+            logger.info("updated picked wand")
+
+            wand_utils.force_refresh_all_wands_on_player(picked_player_id)
+            logger.info("refreshed wands for player")
+        end
+
+        imgui.SameLine()
+    end)
 end
 
 
