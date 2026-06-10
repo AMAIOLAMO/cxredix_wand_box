@@ -236,12 +236,6 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
                 M.begin_wand_direct_sync(
                     player_id, loader_state.actions_str, loader_state
                 )
-
-                if ModIsEnabled("quant.ew") then
-                    logger.info("Found Entangled Worlds, syncing wand to peers...")
-                    -- this should call ONLY on peers, does not include the caller
-                    CrossCall("cx_wndbx_current_player_sync_actions", loader_state.actions_str)
-                end
             end
 
             imgui.SameLine()
@@ -251,12 +245,6 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
                     loader_state.actions_str, loader_state, loader_state.adapt_deck_size
                 )
 
-                -- sync to other players as well :)
-                if ModIsEnabled("quant.ew") then
-                    logger.info("Found Entangled Worlds, syncing wand to peers...")
-                    -- this should call ONLY on peers, does not include the caller
-                    CrossCall("cx_wndbx_current_player_sync_actions", loader_state.actions_str)
-                end
             end
 
             imgui.SameLine()
@@ -268,7 +256,7 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
 
     -- STORAGE BOX --
     if wand_storage_box and imgui.CollapsingHeader("Storage Box") then
-        M.render_wand_storage_box(imgui, loader_state)
+        M.render_wand_storage_box(imgui, loader_state, player_id)
     end
 
 
@@ -365,6 +353,12 @@ function M.begin_wand_direct_sync(player_id, actions_str, loader_state)
     else
         logger.info("Player is not holding a wand to directly sync to")
     end
+
+    if ModIsEnabled("quant.ew") then
+        logger.info("Found Entangled Worlds, syncing wand to peers...")
+        -- this should call ONLY on peers, does not include the caller
+        CrossCall("cx_wndbx_current_player_sync_actions", loader_state.actions_str)
+    end
 end
 
 function M.begin_held_wand_load(player_id, action_str, loader_state, adapt_deck_size)
@@ -394,11 +388,18 @@ function M.begin_held_wand_load(player_id, action_str, loader_state, adapt_deck_
     else
         logger.info("Held wand not found, is the targetted player holding a wand?")
     end
+    
+    -- sync to other players as well :)
+    if ModIsEnabled("quant.ew") then
+        logger.info("Found Entangled Worlds, syncing wand to peers...")
+        -- this should call ONLY on peers, does not include the caller
+        CrossCall("cx_wndbx_current_player_sync_actions", loader_state.actions_str)
+    end
 end
 
 local opened_category_tab_key = nil
 
-function M.render_wand_storage_box(imgui, loader_state)
+function M.render_wand_storage_box(imgui, loader_state, player_id)
     local _
 
     imgui.Text("Save Category")
@@ -439,7 +440,7 @@ function M.render_wand_storage_box(imgui, loader_state)
                 loader_state.actions_str = ckv_map:get(cat_key, val_key)
 
                 logger.info(
-                    ("Loaded spells from category '%s' of name '%s'"):format(
+                    ("Editing spells from category '%s' of name '%s'"):format(
                         cat_key, val_key
                     )
                 )
@@ -496,8 +497,27 @@ function M.render_wand_storage_box(imgui, loader_state)
                     )
                 )
             end
-        })
+        },
+        function(imgui, ckv_map) -- custom gui for loader
+            local held_wand_id = wand_utils.get_held_wand_id(player_id)
 
+            if held_wand_id ~= nil and imgui.Button("Load To Wand") then
+                loader_state.actions_str = ckv_map:get(cat_key, val_key)
+
+                M.begin_held_wand_load(
+                    player_id, loader_state.actions_str,
+                    loader_state, loader_state.adapt_deck_size
+                )
+
+                logger.info(
+                    ("Loaded spells from category '%s' of name '%s'"):format(
+                        cat_key, val_key
+                    )
+                )
+            end
+
+            imgui.SameLine()
+        end)
 end
 
 return M

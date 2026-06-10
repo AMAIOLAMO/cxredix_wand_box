@@ -17,11 +17,7 @@ local target_move_name = "__NAME__"
 -- local import_string = ""
 
 
-function M.render(imgui, ckv_map, actions)
-
-    -- TODO: inconsistent usecase, except the edit_proc, we should let the others be simply just
-    -- a finished callback
-
+function M.render(imgui, ckv_map, actions, custom_gui_action)
     local item_edit_action = actions.item_edit_action or nil
 
     local on_item_moved      = actions.on_item_moved or nil
@@ -77,6 +73,10 @@ function M.render(imgui, ckv_map, actions)
 
                         -- Action Column
                         imgui.TableNextColumn()
+
+                        if custom_gui_action ~= nil then
+                            custom_gui_action(imgui, ckv_map)
+                        end
 
                         if imgui.SmallButton("Edit") then
                             if item_edit_action ~= nil then
