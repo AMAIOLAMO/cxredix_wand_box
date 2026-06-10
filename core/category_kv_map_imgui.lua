@@ -75,7 +75,7 @@ function M.render(imgui, ckv_map, actions, custom_gui_action)
                         imgui.TableNextColumn()
 
                         if custom_gui_action ~= nil then
-                            custom_gui_action(imgui, ckv_map)
+                            custom_gui_action(imgui, ckv_map, cat_key, val_key)
                         end
 
                         if imgui.SmallButton("Edit") then

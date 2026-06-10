@@ -498,14 +498,15 @@ function M.render_wand_storage_box(imgui, loader_state, player_id)
                 )
             end
         },
-        function(imgui, ckv_map) -- custom gui for loader
+        function(imgui, ckv_map, cat_key, val_key) -- custom gui for loader
             local held_wand_id = wand_utils.get_held_wand_id(player_id)
 
-            if held_wand_id ~= nil and imgui.Button("Load To Wand") then
-                loader_state.actions_str = ckv_map:get(cat_key, val_key)
+            if held_wand_id ~= nil and imgui_utils.green_button(imgui, "Load To Wand") then
+                local actions_str = ckv_map:get(cat_key, val_key)
+                loader_state.actions_str = actions_str
 
                 M.begin_held_wand_load(
-                    player_id, loader_state.actions_str,
+                    player_id, actions_str,
                     loader_state, loader_state.adapt_deck_size
                 )
 
