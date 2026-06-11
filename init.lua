@@ -104,7 +104,8 @@ if load_imgui ~= nil then
 
         local y_padding = 2.5
 
-        local CHAR_WIDTH = 7
+        -- TODO: fix char width to be dynamic instead of fixed
+        local CHAR_WIDTH = imgui.GetFontSize()
 
         local half_text_width = CHAR_WIDTH * ("CxRedix's Wand Box"):len() * 0.5
 
@@ -114,6 +115,20 @@ if load_imgui ~= nil then
             vp_work_y + vp_height - menu_height - y_padding
         )
         imgui.SetNextWindowSize(0, 0)
+
+        local im_key_down = imgui.IsKeyDown
+        local im_keys = imgui.Key
+
+        if (im_key_down(im_keys.LeftCtrl) or im_key_down(im_keys.RightCtrl)) and
+            (im_key_down(im_keys.LeftShift) or im_key_down(im_keys.RightShift)) and
+            (imgui.IsKeyPressed(im_keys.M, false)) then
+
+            wndbx_state.hide_all = not wndbx_state.hide_all
+
+            logger.info(
+                wndbx_state.hide_all and "Wand Box Hidden" or "Wand Box Shown"
+            )
+        end
 
         if imgui.Begin("Main Window Menu", nil, window_flags) then
 
@@ -137,6 +152,7 @@ if load_imgui ~= nil then
 
                 imgui.EndMenuBar()
             end
+
         end
 
         -- world post update

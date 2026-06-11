@@ -65,11 +65,14 @@ function M.render_window(imgui, wndbox_state)
         end
 
         if imgui.CollapsingHeader("Clear Delays") then
+            imgui.Indent()
             M.show_delay_clearing(imgui, held_wand_id)
+            imgui.Unindent()
         end
 
 
         if imgui.CollapsingHeader("Wand Duplication") then
+            imgui.Indent()
 
             local _
             _, should_dupe_actions = imgui.Checkbox(
@@ -104,6 +107,7 @@ function M.render_window(imgui, wndbox_state)
                 end
             end
 
+            imgui.Unindent()
         end
 
     else

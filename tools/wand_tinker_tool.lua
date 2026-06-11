@@ -132,6 +132,8 @@ function M.render_window(imgui, wndbx_state)
         if wand_stat_presets_open and wand_stat_presets and col_count > 1 then
             imgui.TableNextColumn()
 
+            imgui.Separator()
+
             if imgui.Button(">") then
                 wand_stat_presets_open = false
             end
