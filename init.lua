@@ -64,9 +64,10 @@ if load_imgui ~= nil then
     local dt_secs = 0
 
     function OnWorldPostUpdate()
-
         dt_secs = GameGetRealWorldTimeSinceStarted() - prev_frame_real_world_time
         prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
+
+        imgui.PushFont(imgui.GetNoitaFont1_4x())
 
         imgui.SetNextWindowSize(800, 400, imgui.Cond.Once)
 
@@ -154,6 +155,7 @@ if load_imgui ~= nil then
         end
 
 
+        imgui.PopFont()
     end
 else
     local warn_notify_interval_frames = 60 * 4 -- every 4 seconds

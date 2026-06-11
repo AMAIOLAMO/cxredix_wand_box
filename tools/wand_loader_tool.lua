@@ -38,6 +38,20 @@ local M = {
     is_open = true
 }
 
+local LoaderState = {}
+LoaderState.__index = LoaderState
+
+function LoaderState.new_default()
+    return setmetatable({
+        actions_str = "",
+        prev_action_count = -1,
+        prev_wand_load_time = -1,
+        adapt_deck_size = true,
+        storage_box_open = false,
+    }, LoaderState)
+end
+
+
 local player_loader_states = {}
 local load_wand_timer = ProfileTimer.new()
 local load_wand_player_id = -1
@@ -142,6 +156,50 @@ function M.on_world_post_update(dt_secs, wndbx_state)
 end
 
 function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
+    local overall_tbl_flags = bit.bor(
+        imgui.TableFlags.Resizable,
+        imgui.TableFlags.Hideable,
+        imgui.TableFlags.RowBg
+    )
+
+    local col_count = loader_state.storage_box_open and 2 or 1
+
+    if imgui.BeginTable("##TablePlayerTab_" .. tostring(player_id), col_count, overall_tbl_flags) then
+        for i = 1, col_count do
+            imgui.TableSetupColumn("")
+        end
+
+        imgui.TableNextRow()
+
+        -- Regular
+        imgui.TableNextColumn()
+        M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
+
+        if imgui_utils.green_button(imgui, "Toggle Storage Box") then
+            loader_state.storage_box_open = not loader_state.storage_box_open
+        end
+
+        -- STORAGE BOX --
+        if loader_state.storage_box_open and wand_storage_box and col_count > 1 then
+            imgui.TableNextColumn()
+
+            if imgui.Button(">") then
+                loader_state.storage_box_open = false
+            end
+
+            imgui.SameLine()
+
+            imgui.Text("Storage Box")
+
+            M.render_wand_storage_box(imgui, loader_state, player_id)
+        end
+        
+        imgui.EndTable()
+    end
+
+end
+
+function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
     local animated_str = ""
     local animated_char_count = 45
 
@@ -167,37 +225,6 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
         -5 * 3, 5 * 50, -- hardcoded size and line height
         imgui.InputTextFlags.EnterReturnsTrue
     )
-
-    -- player picker, only shows up if there are more than 1 player
-    -- (are there any edge cases??)
-    -- TODO: move the wand picker to another window, or make this easily accessible
-    -- as a system
-
-    -- if get_total_player_count() > 1 then
-    --     imgui.Text(
-    --         string.format("Pick player [%d total]: ", get_total_player_count())
-    --     )
-    --     imgui.SameLine()
-    --
-    --     local old_picked_player_idx = wndbx_state.picked_player_idx
-    --
-    --     _, wndbx_state.picked_player_idx = imgui.InputInt(
-    --         "##PickedPlayerIdx", wndbx_state.picked_player_idx
-    --     )
-    --
-    --     wndbx_state.picked_player_idx = umath.clampi(
-    --         wndbx_state.picked_player_idx, 1, get_total_player_count()
-    --     )
-    --
-    --     if old_picked_player_idx ~= wndbx_state.picked_player_idx then
-    --         ComponentSetValue2(
-    --             player_pick_marker_sprite_id,
-    --             "alpha",
-    --             1
-    --         )
-    --         picked_player_marker_fade_wait_timer = 5
-    --     end
-    -- end
 
     local held_wand_id = wand_utils.get_held_wand_id(player_id)
 
@@ -254,12 +281,6 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
         end
     end
 
-    -- STORAGE BOX --
-    if wand_storage_box and imgui.CollapsingHeader("Storage Box") then
-        M.render_wand_storage_box(imgui, loader_state, player_id)
-    end
-
-
     -- METRICS --
     local should_render_wand_timer = loader_state.prev_wand_load_time > 0
     local should_render_action_count = loader_state.prev_action_count > 0
@@ -303,12 +324,15 @@ function M.render_window(imgui, wndbx_state)
             imgui.PushID(tostring(player_id) .. "##tab")
 
             if player_loader_states[player_id] == nil then
-                player_loader_states[player_id] = {
-                    actions_str = "",
-                    prev_action_count = -1,
-                    prev_wand_load_time = -1,
-                    adapt_deck_size = true
-                }
+                player_loader_states[player_id] = LoaderState.new_default()
+                
+                -- TODO: initialize loader state somewhere else, instead of here out of nowhere
+                -- player_loader_states[player_id] = {
+                --     actions_str = "",
+                --     prev_action_count = -1,
+                --     prev_wand_load_time = -1,
+                --     adapt_deck_size = true
+                -- }
             end
 
             if imgui.BeginTabItem(string.format("Player [%d]", player_id)) then
@@ -446,7 +470,9 @@ function M.render_wand_storage_box(imgui, loader_state, player_id)
         )
     end
 
+    imgui.Spacing()
     imgui.Separator()
+    imgui.Spacing()
 
     CategoryKVMapImgui.render(
         imgui, wand_storage_box, {
