@@ -188,7 +188,6 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
             end
 
             imgui.SameLine()
-
             imgui.Text("Storage Box")
 
             imgui.Indent()

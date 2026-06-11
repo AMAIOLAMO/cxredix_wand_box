@@ -56,6 +56,8 @@ local wand_stat_preset_save_name = "MyCoolStats"
 
 local wand_stat_presets_req_save = false
 
+local wand_stat_presets_open = false
+
 function M.on_world_init()
     wand_stat_presets = CategoryKVMap.load_from_settings(
         wand_stat_presets_settings_key
@@ -101,6 +103,53 @@ function M.render_window(imgui, wndbx_state)
         return
     end
 
+    
+    -- TODO: repeated a bit between wand_loader_tool and here
+    local overall_tbl_flags = bit.bor(
+        imgui.TableFlags.Resizable,
+        imgui.TableFlags.Hideable,
+        imgui.TableFlags.RowBg
+    )
+
+    local col_count = wand_stat_presets_open and 2 or 1
+
+    if imgui.BeginTable("##TableWandTinkerer", col_count, overall_tbl_flags) then
+        for i = 1, col_count do
+            imgui.TableSetupColumn("")
+        end
+
+        imgui.TableNextRow()
+
+        -- Regular
+        imgui.TableNextColumn()
+        M.render_tinker_section(imgui, wndbx_state, picked_player_id, picked_wand_id)
+
+        if imgui_utils.green_button(imgui, "Toggle Wand Presets") then
+            wand_stat_presets_open = not wand_stat_presets_open
+        end
+
+
+        if wand_stat_presets_open and wand_stat_presets and col_count > 1 then
+            imgui.TableNextColumn()
+
+            if imgui.Button(">") then
+                wand_stat_presets_open = false
+            end
+
+            imgui.SameLine()
+            imgui.Text("Wand Stat Presets")
+
+            imgui.Indent()
+            M.render_stat_presets(imgui, picked_player_id, picked_wand_id)
+            imgui.Unindent()
+        end
+
+        imgui.EndTable()
+    end
+
+end
+
+function M.render_tinker_section(imgui, wndbx_state, picked_player_id, picked_wand_id)
     imgui.Separator()
 
     imgui.BulletText(
@@ -279,13 +328,6 @@ function M.render_window(imgui, wndbx_state)
         wnd_attribs:apply_to(wand_id)
         logger.info("Wand attributes applied")
     end
-
-    if wand_stat_presets and imgui.CollapsingHeader("Wand Stat Presets") then
-        imgui.Indent()
-        M.render_stat_presets(imgui, picked_player_id, picked_wand_id)
-        imgui.Unindent()
-    end
-
 end
 
 function M.render_stat_presets(imgui, picked_player_id, picked_wand_id)
