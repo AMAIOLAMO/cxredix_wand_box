@@ -191,7 +191,9 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
 
             imgui.Text("Storage Box")
 
+            imgui.Indent()
             M.render_wand_storage_box(imgui, loader_state, player_id)
+            imgui.Unindent()
         end
         
         imgui.EndTable()
@@ -243,6 +245,8 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
 
 
     if imgui.CollapsingHeader("Wand Loading") then
+        imgui.Indent()
+
         if loader_state.actions_str == '' then
             imgui.BulletText(
                 "Type something into the Text Box above to start loading your great wands! :D"
@@ -279,6 +283,8 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
                 loader_state.actions_str = ''
             end
         end
+
+        imgui.Unindent()
     end
 
     -- METRICS --
@@ -288,6 +294,8 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
     local has_metrics = should_render_action_count or should_render_action_count
 
     if imgui.CollapsingHeader("Wand Load Metrics") then
+        imgui.Indent()
+
         if has_metrics then
 
             -- Yes the if checks happens twice, but this is more structured :)
@@ -311,8 +319,10 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
             end
 
         else
-            imgui.Text("Load a wand to see metrics :3")
+            imgui.BulletText("Load a wand to see metrics :3")
         end
+
+        imgui.Unindent()
     end
 end
 

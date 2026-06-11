@@ -133,6 +133,8 @@ function M.render_window(imgui, wndbx_state)
     )
 
     if imgui.CollapsingHeader("UI & HUD") then
+        imgui.Indent()
+
         local _
 
         _, wnd_attribs.item_name = imgui.InputText(
@@ -143,10 +145,12 @@ function M.render_window(imgui, wndbx_state)
             "Always show wand name in UI", wnd_attribs.always_use_item_name_in_ui
         )
 
+        imgui.Unindent()
     end
 
 
     if imgui.CollapsingHeader("Delays") then
+        imgui.Indent()
 
         if time_unit_used == "frames" then
             local cd_frames_changed
@@ -172,10 +176,13 @@ function M.render_window(imgui, wndbx_state)
 
             wnd_attribs.rt_frames = secs_to_frames_floored(rt_secs)
         end
+        imgui.Unindent()
     end
 
 
     if imgui.CollapsingHeader("Mana") then
+        imgui.Indent()
+
         local mana_max_changed
         mana_max_changed, wnd_attribs.mana_max = imgui.InputInt(
             "Max Mana", wnd_attribs.mana_max
@@ -197,9 +204,12 @@ function M.render_window(imgui, wndbx_state)
             wnd_attribs.mana_chrg_spd_secs = mana_chrg_spd_frame * 60
         end
 
+        imgui.Unindent()
     end
 
     if imgui.CollapsingHeader("Spells") then
+        imgui.Indent()
+
         local should_shuffle_changed
         should_shuffle_changed, wnd_attribs.should_shuffle = imgui.Checkbox(
             "Should Shuffle", wnd_attribs.should_shuffle
@@ -226,6 +236,8 @@ function M.render_window(imgui, wndbx_state)
         proj_spd_multiplier_changed, wnd_attribs.proj_spd_multiplier = imgui.InputFloat(
             "Projectile Speed Multiplier", wnd_attribs.proj_spd_multiplier
         )
+
+        imgui.Unindent()
     end
 
 
@@ -269,9 +281,9 @@ function M.render_window(imgui, wndbx_state)
     end
 
     if wand_stat_presets and imgui.CollapsingHeader("Wand Stat Presets") then
-        imgui.Separator()
-
+        imgui.Indent()
         M.render_stat_presets(imgui, picked_player_id, picked_wand_id)
+        imgui.Unindent()
     end
 
 end

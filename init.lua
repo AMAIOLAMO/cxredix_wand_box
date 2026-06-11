@@ -63,11 +63,26 @@ if load_imgui ~= nil then
     local prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
     local dt_secs = 0
 
+    local FONT_SETTING_MAP = {
+        ["noita_font"]      = imgui.GetNoitaFont(),
+        ["noita_font_1_4x"] = imgui.GetNoitaFont1_4x(),
+        ["noita_font_1_8x"] = imgui.GetNoitaFont1_8x(),
+
+        ["imgui_font"]     = imgui.GetImGuiFont(),
+        ["monospace_font"] = imgui.GetMonospaceFont(),
+        ["glyph_font"]     = imgui.GetGlyphFont(),
+        ["noto_font"]      = imgui.GetNotoFont(),
+    }
+
     function OnWorldPostUpdate()
         dt_secs = GameGetRealWorldTimeSinceStarted() - prev_frame_real_world_time
         prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
 
-        imgui.PushFont(imgui.GetNoitaFont1_4x())
+        local chosen_font_setting = ModSettingGet("cxredix_wand_box.font") or "noita_font"
+
+        imgui.PushFont(
+            FONT_SETTING_MAP[chosen_font_setting]
+        )
 
         imgui.SetNextWindowSize(800, 400, imgui.Cond.Once)
 

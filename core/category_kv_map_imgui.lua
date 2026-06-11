@@ -202,6 +202,8 @@ function M.render(imgui, ckv_map, actions, custom_gui_action)
 
 
     if imgui.CollapsingHeader("===[UNSAFE AREA]===") then
+        imgui.Indent()
+
         if opened_category_tab_key and imgui_utils.cautious_button(imgui, "Delete All Items In Category") then
             imgui.OpenPopup("delete_all_items_in_category_confirm_popup")
         end
@@ -253,6 +255,7 @@ function M.render(imgui, ckv_map, actions, custom_gui_action)
             imgui.EndPopup()
         end
 
+        imgui.Unindent()
     end
 end
 
