@@ -23,6 +23,9 @@ local about_page = dofile_once(tools_path .. "about_page.lua")
 --- @module "core.logger"
 local logger = dofile_once(core_path .. "logger.lua")
 
+--- @module "core.imgui_utils"
+local about_page = dofile_once(core_path .. "imgui_utils.lua")
+
 ModLuaFileAppend("data/scripts/gun/gun.lua", core_path .. "gun_deck_handler.lua")
 
 if ModIsEnabled("quant.ew") then
@@ -57,22 +60,11 @@ if load_imgui ~= nil then
     -- allow for multi player selection & multi wand selection
     local wndbx_state = {
         picked_player_idx = 1,
-        hide_all = false
+        hide_all = false,
     }
 
     local prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
     local dt_secs = 0
-
-    local FONT_SETTING_MAP = {
-        ["noita_font"]      = imgui.GetNoitaFont(),
-        ["noita_font_1_4x"] = imgui.GetNoitaFont1_4x(),
-        ["noita_font_1_8x"] = imgui.GetNoitaFont1_8x(),
-
-        ["imgui_font"]     = imgui.GetImGuiFont(),
-        ["monospace_font"] = imgui.GetMonospaceFont(),
-        ["glyph_font"]     = imgui.GetGlyphFont(),
-        ["noto_font"]      = imgui.GetNotoFont(),
-    }
 
     function OnWorldPostUpdate()
         dt_secs = GameGetRealWorldTimeSinceStarted() - prev_frame_real_world_time
@@ -80,9 +72,7 @@ if load_imgui ~= nil then
 
         local chosen_font_setting = ModSettingGet("cxredix_wand_box.font") or "noita_font"
 
-        imgui.PushFont(
-            FONT_SETTING_MAP[chosen_font_setting]
-        )
+        -- imgui.PushFont(imgui.GetNoitaFont1_4x())
 
         imgui.SetNextWindowSize(800, 400, imgui.Cond.Once)
 
@@ -119,6 +109,8 @@ if load_imgui ~= nil then
         local im_key_down = imgui.IsKeyDown
         local im_keys = imgui.Key
 
+        -- TODO: this is hardcoded, maybe have somewhere where we
+        -- handle shortcut keys together
         if (im_key_down(im_keys.LeftCtrl) or im_key_down(im_keys.RightCtrl)) and
             (im_key_down(im_keys.LeftShift) or im_key_down(im_keys.RightShift)) and
             (imgui.IsKeyPressed(im_keys.M, false)) then
@@ -185,8 +177,7 @@ if load_imgui ~= nil then
             ::continue::
         end
 
-
-        imgui.PopFont()
+        -- imgui.PopFont()
     end
 else
     local warn_notify_interval_frames = 60 * 4 -- every 4 seconds

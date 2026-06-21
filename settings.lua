@@ -10,7 +10,7 @@ mod_settings = {
         settings = {
             {
                 id = "font",
-                ui_name = "Font",
+                ui_name = "Font(TEMPORARILY DISABLED)",
                 ui_description = "What kind of font should wand box use?",
 
                 value_default = "noita_font",
