@@ -14,6 +14,10 @@ local logger = dofile_once(core_path .. "logger.lua")
 --- @module "core.wand_attributes"
 local WandAttribs = dofile_once(core_path .. "wand_attributes.lua")
 
+--- @module "core.imgui_utils"
+local imgui_utils = dofile_once(core_path .. "imgui_utils.lua")
+
+
 --- @class tools.wand_helper_tool
 local M = {
     name = "Wand Helper",
@@ -124,6 +128,63 @@ function M.render_window(imgui, wndbox_state)
         )
         logger.info("Refresh Complete")
     end
+
+    imgui.Separator()
+
+    local player_id = player_utils.get_player_id(
+        wndbox_state.picked_player_idx
+    )
+
+    M.display_wand_radar(imgui, player_id)
+end
+
+function M.display_wand_radar(imgui, player_id)
+    imgui.Text("Wand Radar")
+    local wand_ids = EntityGetWithTag("wand") or {}
+
+    imgui.Indent()
+
+    local px, py = EntityGetTransform(player_id)
+
+    for i, wand_id in ipairs(wand_ids) do
+        local wx, wy = EntityGetTransform(wand_id)
+
+        local dx = px - wx
+        local dy = py - wy
+
+        local dist_to_player_px = math.sqrt(dy * dy + dx * dx)
+
+        if imgui.CollapsingHeader(string.format("ID: %d", i, wand_id)) then
+            imgui.BulletText(
+                string.format(
+                    "<%.0f, %.0f> (%.1f px)", wx, wy, dist_to_player_px
+                )
+            )
+
+            imgui.PushID(tostring(wand_id))
+
+            if imgui.Button("Tp to wand") then
+                EntityApplyTransform(player_id, wx, wy)
+            end
+
+            imgui.SameLine()
+
+            if imgui.Button("Tp wand to you") then
+                EntityApplyTransform(wand_id, px, py)
+            end
+
+            imgui.SameLine()
+
+            if imgui_utils.cautious_button(imgui, "Destroy") then
+                EntityKill(wand_id)
+            end
+
+            imgui.PopID(tostring(wand_id))
+        end
+
+    end
+
+    imgui.Unindent()
 end
 
 function M.show_delay_clearing(imgui, held_wand_id)

@@ -24,7 +24,7 @@ local about_page = dofile_once(tools_path .. "about_page.lua")
 local logger = dofile_once(core_path .. "logger.lua")
 
 --- @module "core.imgui_utils"
-local about_page = dofile_once(core_path .. "imgui_utils.lua")
+local imgui_utils = dofile_once(core_path .. "imgui_utils.lua")
 
 ModLuaFileAppend("data/scripts/gun/gun.lua", core_path .. "gun_deck_handler.lua")
 
@@ -70,7 +70,7 @@ if load_imgui ~= nil then
         dt_secs = GameGetRealWorldTimeSinceStarted() - prev_frame_real_world_time
         prev_frame_real_world_time = GameGetRealWorldTimeSinceStarted()
 
-        local chosen_font_setting = ModSettingGet("cxredix_wand_box.font") or "noita_font"
+        -- local chosen_font_setting = ModSettingGet("cxredix_wand_box.font") or "noita_font"
 
         -- imgui.PushFont(imgui.GetNoitaFont1_4x())
 
@@ -133,10 +133,11 @@ if load_imgui ~= nil then
                     )
 
                     for _, tool in ipairs(tools) do
-                        local _
+
                         _, tool.is_open = imgui.MenuItem(
                             tool.name, "", tool.is_open
                         )
+
                     end
 
                     imgui.EndMenu()
