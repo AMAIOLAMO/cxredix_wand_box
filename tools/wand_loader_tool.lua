@@ -32,6 +32,9 @@ local CategoryKVMapImgui = dofile_once(core_path .. "category_kv_map_imgui.lua")
 --- @module "core.imgui_utils"
 local imgui_utils = dofile_once(core_path .. "imgui_utils.lua")
 
+--- @module "core.auto_complete_utils"
+local cmp_utils = dofile_once(core_path .. "auto_complete_utils.lua")
+
 --- @class tools.wand_loader_tool
 local M = {
     name = "Wand Loader",
@@ -51,6 +54,7 @@ function LoaderState.new_default()
     }, LoaderState)
 end
 
+local cache_cmp_spell_list = nil
 
 local player_loader_states = {}
 local load_wand_timer = ProfileTimer.new()
@@ -81,6 +85,13 @@ function M.on_world_init()
     )
 
     ComponentSetValue2(player_pick_marker_sprite_id, "alpha", 0)
+
+    cache_cmp_spell_list = cmp_utils.create_cmp_spell_list()
+    if cache_cmp_spell_list ~= nil then
+        logger.info(
+            string.format("Cached auto complete spell list with %d spells", #cache_cmp_spell_list)
+        )
+    end
 end
 
 function M.on_world_post_update(dt_secs, wndbx_state)
@@ -200,26 +211,11 @@ function M.render_tab_for_player(imgui, wndbx_state, player_id, loader_state)
 
 end
 
+local auto_cmp_str = ""
+local auto_cmp_spells = {}
+
 function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
-    local animated_str = ""
-    local animated_char_count = 45
-
-    local sin_value = animated_char_count * (
-        math.sin(GameGetRealWorldTimeSinceStarted() * 1.3) * 0.5 + 0.5
-    )
-
-    -- rounding and shift by 1
-    sin_value = umath.round(sin_value)
-
-    for i = 1, animated_char_count do
-        if i == sin_value then
-            animated_str = animated_str .. "^"
-        end
-
-        animated_str = animated_str .. "."
-    end
-
-    imgui.Text("Put your wand string below " .. animated_str)
+    imgui.Text("Put your wand string below :D")
 
     _, loader_state.actions_str = imgui.InputTextMultiline(
         "##Input", loader_state.actions_str,
@@ -228,19 +224,54 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
     )
 
     local held_wand_id = wand_utils.get_held_wand_id(player_id)
+    
+    if imgui.CollapsingHeader("Wand String Tools") then
+        -- display copy string from held wand
+        if held_wand_id ~= nil then
+            if imgui.Button("Copy From Held Wand") then
+                local actions_str = wand_utils.wand_get_all_actions_as_actions_str(
+                    held_wand_id
+                )
 
-    -- display copy string from held wand
-    if held_wand_id ~= nil then
-        if imgui.Button("Copy From Held Wand") then
-            local actions_str = wand_utils.wand_get_all_actions_as_actions_str(
-                held_wand_id
-            )
+                loader_state.actions_str = actions_str
 
-            loader_state.actions_str = actions_str
+                logger.info("Copied actions from held wand!")
+            end
+        end
 
-            logger.info("Copied action from held wand!")
+        imgui.Text("Auto Complete: ")
+        imgui.SameLine()
+        _, auto_cmp_str = imgui.InputText(
+            "##AutoComplete", auto_cmp_str
+        )
+
+        -- TODO: should instead only update when the input text changed
+        local AUTO_CMP_UPDATE_FRAME_COUNT = 30
+        local AUTO_CMP_COUNT = 5
+
+        if GameGetFrameNum() % AUTO_CMP_UPDATE_FRAME_COUNT == 0 then
+            if #auto_cmp_str == 0 then
+                auto_cmp_spells = {}
+            else
+                local spell_list = cmp_utils.auto_complete_spell_list(
+                    auto_cmp_str, cache_cmp_spell_list, AUTO_CMP_COUNT
+                )
+                auto_cmp_spells = spell_list
+            end
+        end
+
+        for i, v in ipairs(auto_cmp_spells) do
+            local spell_str = v[1]
+            if imgui_utils.green_button(imgui, spell_str) then
+                loader_state.actions_str = loader_state.actions_str .. spell_str
+            end
+
+            if i ~= #auto_cmp_spells then
+                imgui.SameLine()
+            end
         end
     end
+    
 
 
     if imgui.CollapsingHeader("Wand Loading") then

@@ -183,4 +183,3 @@ print(
     ("Tests success %d, failed %d, total %d")
         :format(success_count, total_count - success_count, total_count)
 )
-

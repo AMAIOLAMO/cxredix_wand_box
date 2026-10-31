@@ -151,6 +151,7 @@ function M.render_window(imgui, wndbx_state)
 
 end
 
+-- reimplement so we can generate a wand without holding any
 function M.render_tinker_section(imgui, wndbx_state, picked_player_id, picked_wand_id)
     imgui.Separator()
 
