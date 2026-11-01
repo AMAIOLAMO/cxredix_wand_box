@@ -5,8 +5,11 @@ local M = {}
 -- the function tries it's best to compress the spells and returns
 -- a compressed wand string
 function M.compress(spell_ids)
-    local spell_group_set = {}
+    local spell_group_ids = {}
     local spell_counts = {}
+    -- sorted version of spell count, but from the most amount of characters
+    -- to least amount within the resulting string
+    local spell_id_counts_length_sorted = {}
 
     local spell_group_ignore = {} -- non nil keys to ignore
 
@@ -16,7 +19,8 @@ function M.compress(spell_ids)
     local GROUP_CHAR_PADDING = 3 -- from: A -> [A]: has more than 3 characters
 
     -- used for getting unique ids
-    local g_group_id = 0
+    local INITIAL_GROUP_ID = 0
+    local g_group_id = INITIAL_GROUP_ID
 
     -- count spells
     for i, spell_id in ipairs(spell_ids) do
@@ -27,9 +31,33 @@ function M.compress(spell_ids)
         spell_counts[spell_id] = spell_counts[spell_id] + 1
     end
 
+    for spell_id, spell_count in pairs(spell_counts) do
+        table.insert(spell_id_counts_length_sorted, {spell_id, spell_count})
+    end
+
+    -- sorts by character length
+    table.sort(
+        spell_id_counts_length_sorted,
+        function (a, b)
+            local a_spell_id = a[1]
+            local a_spell_count = a[2]
+
+            local b_spell_id = b[1]
+            local b_spell_count = b[2]
+
+            -- sort descending from highest character count to lowest
+            return #a_spell_id * a_spell_count > #b_spell_id * b_spell_count
+        end
+    )
+
+    -- populate spell group ids and
     -- see which spells is not worth spell grouping by
     -- comparing the length it compresses
-    for spell_id, spell_count in pairs(spell_counts) do
+    -- for spell_id, spell_count in pairs(spell_counts) do
+    for i, v in ipairs(spell_id_counts_length_sorted) do
+        local spell_id = v[1]
+        local spell_count = v[2]
+
         if spell_count == 1 then
             spell_group_ignore[spell_id] = 0
             goto continue
@@ -37,13 +65,7 @@ function M.compress(spell_ids)
 
         local raw_char_length = #spell_id * spell_count
 
-        -- print(string.format("spell: %s, count: %d, total char: %d", spell_str, spell_count, raw_char_length))
-        
-        -- TODO: for now we assume a constant of length 1
-        -- for this algorithm to work, we have to first assign group ids
-        -- for each spell based on the higher its frequency and the longer it's string
-        -- we assign a shorter group id
-        local group_id_str_len = 1
+        local group_id_str_len = #tostring(g_group_id)
 
         local grouped_length = #spell_id + GROUP_CHAR_PADDING + group_id_str_len * (1 + spell_count)
 
@@ -51,7 +73,24 @@ function M.compress(spell_ids)
         -- then we dont need to compress
         if raw_char_length <= grouped_length then
             spell_group_ignore[spell_id] = 0
+
+            goto continue
         end
+
+        -- otherwise we don't ignore the spell group because it shortens
+        local comma_str = ","
+
+        -- first group
+        if g_group_id == INITIAL_GROUP_ID then
+            comma_str = ""
+        end
+
+        local group_id = g_group_id
+        g_group_id = g_group_id + 1
+
+        spell_group_ids[spell_id] = group_id
+
+        spell_group_str = spell_group_str .. comma_str .. string.format("[%s]:%d", spell_id, group_id)
 
         ::continue::
     end
@@ -78,26 +117,7 @@ function M.compress(spell_ids)
 
 
         -- handle spell groups
-        local group_id = spell_group_set[spell_id]
-        
-        -- if the group is new
-        if group_id == nil then
-            local comma_str = ","
-
-            -- first group
-            if g_group_id == 0 then
-                comma_str = ""
-            end
-
-            group_id = g_group_id
-            g_group_id = g_group_id + 1
-
-            spell_group_set[spell_id] = group_id
-
-            spell_group_str = spell_group_str .. comma_str .. string.format("[%s]:%d", spell_id, group_id)
-        end
-        -- having group id, we can then replace the string
-
+        local group_id = spell_group_ids[spell_id]
         spell_ids_str = spell_ids_str .. spell_ids_str_comma .. group_id
 
         ::continue::
