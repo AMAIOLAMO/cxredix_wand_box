@@ -65,10 +65,6 @@ function M.compress(spell_ids)
             spell_ids_str_comma = ""
         end
 
-        -- if the spell occured only once, then there is no need to group them
-        -- TODO: this check can be more specific, it can count the amount of
-        -- characters it changes and see if the compressed version actually decreases the
-        -- amount of characters within the result
         if spell_group_ignore[spell_id] ~= nil then
             if i == 1 then
                 comma_str = ""

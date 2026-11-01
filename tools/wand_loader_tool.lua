@@ -229,6 +229,8 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
     local held_wand_id = wand_utils.get_held_wand_id(player_id)
     
     if imgui.CollapsingHeader("Wand String Tools") then
+        imgui.Indent()
+
         if imgui_utils.cautious_button(imgui, "Compress String(Replaces current content)") then
             imgui.OpenPopup("compress_string_confirmation_popup")
         end
@@ -317,6 +319,8 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
                 imgui.SameLine()
             end
         end
+
+        imgui.Unindent()
     end
     
 
