@@ -35,6 +35,9 @@ local imgui_utils = dofile_once(core_path .. "imgui_utils.lua")
 --- @module "core.auto_complete_utils"
 local cmp_utils = dofile_once(core_path .. "auto_complete_utils.lua")
 
+--- @module "core.spell_compress_utils"
+local compress_utils = dofile_once(core_path .. "spell_compress_utils.lua")
+
 --- @class tools.wand_loader_tool
 local M = {
     name = "Wand Loader",
@@ -238,8 +241,32 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
             imgui.Text("Click anywhere else to Cancel")
 
             if imgui_utils.cautious_small_button(imgui, "Yes") then
-                local action_ids = cx_parser.parse_to_action_ids(loader_state.actions_str)
+                local original_length = #loader_state.actions_str
 
+                if original_length > 0 then
+                    local action_ids = cx_parser.parse_to_action_ids(loader_state.actions_str)
+
+                    local compressed_str = compress_utils.compress(action_ids)
+
+                    local new_length = #compressed_str
+
+                    loader_state.actions_str = compressed_str
+
+                    local comp_ratio = new_length / original_length * 100
+
+                    logger.info(
+                        string.format("Compressed wand string with compression ratio(new/old): %.2f", comp_ratio)
+                    )
+
+                    logger.info(
+                        string.format(
+                            "Old Length: %d, New Length: %d, Abs. Difference: %d",
+                            original_length, new_length, math.abs(new_length - original_length)
+                        )
+                    )
+                else
+                    logger.info("Cannot compress an empty wand string")
+                end
             end
 
             imgui.EndPopup()

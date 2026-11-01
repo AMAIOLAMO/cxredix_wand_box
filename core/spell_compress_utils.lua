@@ -8,8 +8,12 @@ function M.compress(spell_ids)
     local spell_group_set = {}
     local spell_counts = {}
 
+    local spell_group_ignore = {} -- non nil keys to ignore
+
     local spell_ids_str = ""
     local spell_group_str = ""
+
+    local GROUP_CHAR_PADDING = 3 -- from: A -> [A]: has more than 3 characters
 
     -- used for getting unique ids
     local g_group_id = 0
@@ -21,6 +25,35 @@ function M.compress(spell_ids)
         end
 
         spell_counts[spell_id] = spell_counts[spell_id] + 1
+    end
+
+    -- see which spells is not worth spell grouping by
+    -- comparing the length it compresses
+    for spell_id, spell_count in pairs(spell_counts) do
+        if spell_count == 1 then
+            spell_group_ignore[spell_id] = 0
+            goto continue
+        end
+
+        local raw_char_length = #spell_id * spell_count
+
+        -- print(string.format("spell: %s, count: %d, total char: %d", spell_str, spell_count, raw_char_length))
+        
+        -- TODO: for now we assume a constant of length 1
+        -- for this algorithm to work, we have to first assign group ids
+        -- for each spell based on the higher its frequency and the longer it's string
+        -- we assign a shorter group id
+        local group_id_str_len = 1
+
+        local grouped_length = #spell_id + GROUP_CHAR_PADDING + group_id_str_len * (1 + spell_count)
+
+        -- if the original raw char is less than the grouped versions
+        -- then we dont need to compress
+        if raw_char_length <= grouped_length then
+            spell_group_ignore[spell_id] = 0
+        end
+
+        ::continue::
     end
 
     -- reconstruct spell ids
@@ -36,7 +69,7 @@ function M.compress(spell_ids)
         -- TODO: this check can be more specific, it can count the amount of
         -- characters it changes and see if the compressed version actually decreases the
         -- amount of characters within the result
-        if spell_counts[spell_id] == 1 then
+        if spell_group_ignore[spell_id] ~= nil then
             if i == 1 then
                 comma_str = ""
             end
@@ -74,7 +107,13 @@ function M.compress(spell_ids)
         ::continue::
     end
 
-    return spell_ids_str .. ";" .. spell_group_str
+    local result_str = spell_ids_str
+
+    if #spell_group_str ~= 0 then
+        result_str = result_str .. ";" .. spell_group_str
+    end
+
+    return result_str
 end
 
 
