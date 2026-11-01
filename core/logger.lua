@@ -1,4 +1,4 @@
---- @class logger
+--- @class core.logger
 local M = {}
 
 

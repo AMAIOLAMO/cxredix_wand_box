@@ -1,4 +1,4 @@
---- @class player_utils
+--- @class core.player_utils
 local M = {}
 
 function M.get_player_ids()

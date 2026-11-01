@@ -1,4 +1,4 @@
---- @class cx_action_parse_utils
+--- @class core.cx_action_parse_utils
 local M = {}
 
 -- ```

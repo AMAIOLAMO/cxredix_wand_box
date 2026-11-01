@@ -226,6 +226,25 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
     local held_wand_id = wand_utils.get_held_wand_id(player_id)
     
     if imgui.CollapsingHeader("Wand String Tools") then
+        if imgui_utils.cautious_button(imgui, "Compress String(Replaces current content)") then
+            imgui.OpenPopup("compress_string_confirmation_popup")
+        end
+
+        if imgui.BeginPopup("compress_string_confirmation_popup") then
+            imgui.Text(
+                "Are you sure you want to compress the wand string above(Will replace the current wand string)?"
+            )
+
+            imgui.Text("Click anywhere else to Cancel")
+
+            if imgui_utils.cautious_small_button(imgui, "Yes") then
+                local action_ids = cx_parser.parse_to_action_ids(loader_state.actions_str)
+
+            end
+
+            imgui.EndPopup()
+        end
+
         -- display copy string from held wand
         if held_wand_id ~= nil then
             if imgui.Button("Copy From Held Wand") then
@@ -238,6 +257,7 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
                 logger.info("Copied actions from held wand!")
             end
         end
+
 
         imgui.Text("Auto Complete: ")
         imgui.SameLine()

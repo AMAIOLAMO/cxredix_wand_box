@@ -1,7 +1,7 @@
 dofile_once("data/scripts/lib/coroutines.lua")
 dofile_once("data/scripts/lib/utilities.lua")
 
---- @class ProfileTimer
+--- @class core.ProfileTimer
 local M = {}
 M.__index = M
 

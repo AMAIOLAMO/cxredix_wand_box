@@ -10,7 +10,7 @@ local cx_parser = dofile_once(core_path .. "cx_action_parse_utils.lua")
 --- @module 'core.cx_deck_sync'
 local cx_deck_sync = dofile_once(core_path .. "cx_deck_sync.lua")
 
---- @class wand_utils
+--- @class core.wand_utils
 local M = {}
 
 function M.get_held_wand_id(player)

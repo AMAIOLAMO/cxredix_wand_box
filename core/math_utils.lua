@@ -1,4 +1,4 @@
---- @class math_utils
+--- @class core.math_utils
 local M = {}
 
 -- linear interpolation between a and b
