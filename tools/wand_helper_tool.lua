@@ -154,6 +154,51 @@ function M.display_wand_radar(imgui, player_id)
 
     local px, py = EntityGetTransform(player_id)
 
+    if imgui_utils.cautious_small_button(imgui, "Destroy All Non-player wands") then
+
+        imgui.OpenPopup("destroy_non_player_wands_all_popup")
+    end
+
+    if imgui.BeginPopup("destroy_non_player_wands_all_popup") then
+        imgui.Text("Are you sure you want to destroy all non player wands in the world?")
+
+        imgui.Text("Press anywhere else to cancel")
+        
+        if imgui_utils.cautious_small_button(imgui, "Yes") then
+            local count = 0
+
+            local killed_wand_ids_set = {}
+
+            for _, wand_id in ipairs(wand_ids) do
+                if not wand_utils.is_player_wand(player_id, wand_id) then
+                    count = count + 1
+
+                    killed_wand_ids_set[wand_id] = 0
+
+                    EntityKill(wand_id)
+                end
+            end
+
+
+            -- clean up invalid wand ids
+            for i = #wand_ids, 1 do
+                local wand_id = wand_ids[i]
+
+                if killed_wand_ids_set[wand_id] ~= nil then
+                    table.remove(wand_ids, i)
+                end
+            end
+
+            logger.info(string.format("Destroyed a total of %d wands in the world", count))
+        end
+
+        imgui.EndPopup()
+    end
+
+    imgui.Spacing()
+    imgui.Separator()
+    imgui.Spacing()
+
     for i, wand_id in ipairs(wand_ids) do
         local wx, wy = EntityGetTransform(wand_id)
 
@@ -162,7 +207,14 @@ function M.display_wand_radar(imgui, player_id)
 
         local dist_to_player_px = math.sqrt(dy * dy + dx * dx)
 
-        if imgui.CollapsingHeader(string.format("ID: %d", i, wand_id)) then
+        local is_player_wand = wand_utils.is_player_wand(player_id, wand_id)
+        local your_wand_str = ""
+
+        if is_player_wand then
+            your_wand_str = string.format("(player wand)", player_id)
+        end
+
+        if imgui.CollapsingHeader(string.format("ID: %d %s", wand_id, your_wand_str)) then
             imgui.BulletText(
                 string.format(
                     "<%.0f, %.0f> (%.1f px)", wx, wy, dist_to_player_px
@@ -170,6 +222,12 @@ function M.display_wand_radar(imgui, player_id)
             )
 
             imgui.PushID(tostring(wand_id))
+
+            if is_player_wand then
+                imgui.Text(
+                    string.format("This wand is in a player's inventory (player id: %d)", player_id)
+                )
+            end
 
             if imgui.Button("Tp to wand") then
                 EntityApplyTransform(player_id, wx, wy)
@@ -182,6 +240,7 @@ function M.display_wand_radar(imgui, player_id)
             end
 
             imgui.SameLine()
+
 
             if imgui_utils.cautious_button(imgui, "Destroy") then
                 EntityKill(wand_id)

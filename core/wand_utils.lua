@@ -13,6 +13,34 @@ local cx_deck_sync = dofile_once(core_path .. "cx_deck_sync.lua")
 --- @class core.wand_utils
 local M = {}
 
+-- given a player's entity id, tries to get the wands the player's inventory has
+-- returns an empty table if none found
+-- otherwise returns a list of wand ids
+function M.get_inventory_wand_ids(player)
+    local wand_ids
+    for _, child_id in ipairs(EntityGetAllChildren(player) or {}) do
+        if EntityGetName(child_id) == "inventory_quick" then
+            wand_ids = EntityGetAllChildren(child_id, "wand") or {}
+        end
+    end
+
+    return wand_ids
+end
+
+
+-- returns whether or not the target_wand_id is one of the wands in the player inventory
+function M.is_player_wand(player, target_wand_id)
+    local wand_ids = M.get_inventory_wand_ids(player)
+
+    for _, wand_id in ipairs(wand_ids) do
+        if wand_id == target_wand_id then
+            return true
+        end
+    end
+
+    return false
+end
+
 function M.get_held_wand_id(player)
     local wands
     for _, child_id in ipairs(EntityGetAllChildren(player) or {}) do
