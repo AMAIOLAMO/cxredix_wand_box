@@ -217,7 +217,7 @@ function M.display_wand_radar(imgui, player_id)
         if imgui.CollapsingHeader(string.format("ID: %d %s", wand_id, your_wand_str)) then
             imgui.BulletText(
                 string.format(
-                    "<%.0f, %.0f> (%.1f px)", wx, wy, dist_to_player_px
+                    "<%.0f, %.0f> (%.1f px away)", wx, wy, dist_to_player_px
                 )
             )
 

@@ -244,6 +244,14 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
     if imgui.CollapsingHeader("Wand String Tools") then
         imgui.Indent()
 
+        if imgui.Button("Copy To Clipboard") then
+            imgui.SetClipboardText(loader_state.actions_str)
+
+            logger.info("Attempted to copy to system clipboard")
+        end
+
+        imgui.SameLine()
+
         if imgui_utils.cautious_button(imgui, "Clear String") then
             loader_state.actions_str = ''
         end
