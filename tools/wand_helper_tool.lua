@@ -20,13 +20,21 @@ local imgui_utils = dofile_once(core_path .. "imgui_utils.lua")
 
 --- @class tools.wand_helper_tool
 local M = {
-    name = "Wand Helper",
-    is_open = false
+    name = "Wand Helper"
 }
 
 local should_clear_cast_delay = false
 local should_clear_recharge_time = false
 local should_dupe_actions = true
+
+function M:is_open()
+    return ModSettingGet("cxredix_wand_box.wnd_helper_tool_open") or false
+end
+
+function M:set_open(status)
+    return ModSettingSet("cxredix_wand_box.wnd_helper_tool_open", status)
+end
+
 
 
 function M.render_window(imgui, wndbox_state)

@@ -31,8 +31,7 @@ local imgui_utils = dofile_once(core_path .. "imgui_utils.lua")
 
 --- @class tools.wand_tinker_tool
 local M = {
-    name = "Wand Tinker",
-    is_open = false
+    name = "Wand Tinker"
 }
 
 
@@ -57,6 +56,15 @@ local wand_stat_preset_save_name = "MyCoolStats"
 local wand_stat_presets_req_save = false
 
 local wand_stat_presets_open = false
+
+
+function M:is_open()
+    return ModSettingGet("cxredix_wand_box.wnd_tinker_tool_open") or false
+end
+
+function M:set_open(status)
+    return ModSettingSet("cxredix_wand_box.wnd_tinker_tool_open", status)
+end
 
 function M.on_world_init()
     wand_stat_presets = CategoryKVMap.load_from_settings(

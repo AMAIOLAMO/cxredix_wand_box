@@ -133,10 +133,16 @@ if load_imgui ~= nil then
                     )
 
                     for _, tool in ipairs(tools) do
+                        local old_open_status = tool:is_open()
+                        local new_open_status = false
 
-                        _, tool.is_open = imgui.MenuItem(
-                            tool.name, "", tool.is_open
+                        _, new_open_status = imgui.MenuItem(
+                            tool.name, "", old_open_status
                         )
+
+                        if new_open_status ~= old_open_status then
+                            tool:set_open(new_open_status)
+                        end
 
                     end
 
@@ -157,14 +163,20 @@ if load_imgui ~= nil then
 
         -- tool render window
         for _, tool in ipairs(tools) do
-            if not tool.is_open or wndbx_state.hide_all then
+            if not tool:is_open() or wndbx_state.hide_all then
                 goto continue
             end
+            -- the window is open
 
             local should_show
-            should_show, tool.is_open = imgui.Begin(
-                tool.name, tool.is_open
+            local new_open_status
+            should_show, new_open_status = imgui.Begin(
+                tool.name, true
             )
+
+            if new_open_status == false then
+                tool:set_open(false)
+            end
 
             if not should_show then
                 goto continue

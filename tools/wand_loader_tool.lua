@@ -40,8 +40,7 @@ local compress_utils = dofile_once(core_path .. "spell_compress_utils.lua")
 
 --- @class tools.wand_loader_tool
 local M = {
-    name = "Wand Loader",
-    is_open = true
+    name = "Wand Loader"
 }
 
 local LoaderState = {}
@@ -76,6 +75,14 @@ local storage_box_save_category = "Any"
 local req_save_storage_box = false
 
 local wand_storage_box_settings_key = "cxredix_wand_box.storage_box"
+
+function M:is_open()
+    return ModSettingGet("cxredix_wand_box.wnd_loader_tool_open") or false
+end
+
+function M:set_open(status)
+    return ModSettingSet("cxredix_wand_box.wnd_loader_tool_open", status)
+end
 
 
 function M.on_world_init()
@@ -537,7 +544,7 @@ function M.begin_held_wand_load(player_id, action_str, loader_state, adapt_deck_
             tostring(loader_state.prev_wand_load_time)
         )
     else
-        logger.info("Held wand not found, is the targetted player holding a wand?")
+        logger.info("Held wand not found, is the target player holding a wand?")
     end
     
     -- sync to other players as well :)

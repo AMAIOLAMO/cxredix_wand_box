@@ -13,9 +13,16 @@ local WandAttribs = dofile_once(core_path .. "wand_attributes.lua")
 
 --- @class tools.about_page
 local M = {
-    name = "About",
-    is_open = false
+    name = "About"
 }
+
+function M:is_open()
+    return ModSettingGet("cxredix_wand_box.about_page_open") or false
+end
+
+function M:set_open(status)
+    return ModSettingSet("cxredix_wand_box.about_page_open", status)
+end
 
 
 function M.render_window(imgui, wndbox_state)
