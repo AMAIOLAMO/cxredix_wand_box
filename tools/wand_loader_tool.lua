@@ -226,16 +226,34 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
         imgui.InputTextFlags.EnterReturnsTrue
     )
 
+    imgui.Text(string.format("Total characters: %d", #loader_state.actions_str))
+
+    imgui.Spacing()
+    imgui.Separator()
+    imgui.Spacing()
+
     local held_wand_id = wand_utils.get_held_wand_id(player_id)
-    
+
     if imgui.CollapsingHeader("Wand String Tools") then
         imgui.Indent()
 
-        if imgui_utils.cautious_button(imgui, "Compress String(Replaces current content)") then
+        if imgui_utils.cautious_button(imgui, "Clear String") then
+            loader_state.actions_str = ''
+        end
+
+        imgui.SameLine()
+        if imgui_utils.cautious_button(imgui, "Compress String") then
             imgui.OpenPopup("compress_string_confirmation_popup")
         end
 
+        imgui.SameLine()
+        if imgui_utils.cautious_button(imgui, "Uncompress String") then
+            imgui.OpenPopup("uncompress_string_confirmation_popup")
+        end
+
+
         if imgui.BeginPopup("compress_string_confirmation_popup") then
+            imgui.Indent()
             imgui.Text(
                 "Are you sure you want to compress the wand string above(Will replace the current wand string)?"
             )
@@ -271,11 +289,34 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
                 end
             end
 
+            imgui.Unindent()
+            imgui.EndPopup()
+        end
+        
+        if imgui.BeginPopup("uncompress_string_confirmation_popup") then
+            imgui.Indent()
+            imgui.Text(
+                "Are you sure you want to uncompress the wand string above(Will replace the current wand string)?"
+            )
+
+            imgui.Text("This will remove all spell groups, and substitute all contents back to the spell list")
+
+            imgui.Text("Click anywhere else to Cancel")
+
+            if imgui_utils.cautious_small_button(imgui, "Yes") then
+                local action_ids = cx_parser.parse_to_action_ids(loader_state.actions_str)
+                loader_state.actions_str = M.reconstruct_actions_str(action_ids)
+
+                logger.info("Uncompress Complete")
+            end
+
+            imgui.Unindent()
             imgui.EndPopup()
         end
 
         -- display copy string from held wand
         if held_wand_id ~= nil then
+            imgui.SameLine()
             if imgui.Button("Copy From Held Wand") then
                 local actions_str = wand_utils.wand_get_all_actions_as_actions_str(
                     held_wand_id
@@ -357,11 +398,6 @@ function M.render_loader_section(imgui, wndbx_state, player_id, loader_state)
                     loader_state.actions_str, loader_state, loader_state.adapt_deck_size
                 )
 
-            end
-
-            imgui.SameLine()
-            if imgui_utils.cautious_button(imgui, "Clear") then
-                loader_state.actions_str = ''
             end
         end
 
@@ -650,6 +686,20 @@ function M.render_wand_storage_box(imgui, loader_state, player_id)
 
             imgui.SameLine()
         end)
+end
+
+function M.reconstruct_actions_str(spell_ids)
+    local actions_str = ""
+    for i, spell_id in ipairs(spell_ids) do
+        local comma = ", "
+        
+        if i == 1 then
+            comma = ""
+        end
+        actions_str = actions_str .. comma .. spell_id
+    end
+
+    return actions_str
 end
 
 return M
